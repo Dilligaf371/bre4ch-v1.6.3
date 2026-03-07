@@ -135,18 +135,24 @@ class _CrisisFilterScreenState extends ConsumerState<CrisisFilterScreen>
     return 'OTHER';
   }
 
-  String _eventSourceCategory(String? source) {
-    if (source == null) return 'OTHER';
+  /// Returns ALL matching source categories (set-based).
+  /// An event like "X @modgovae" matches both 'X' and 'MOD'.
+  Set<String> _eventSourceCategories(String? source) {
+    if (source == null) return {'OTHER'};
     final s = source.toUpperCase();
-    if (s.contains('MOI') || s.contains('INTERIOR') || s.contains('الداخلية')) return 'MOI';
-    if (s.contains('MOD') || s.contains('DEFENSE') || s.contains('DEFENCE') || s.contains('الدفاع')) return 'MOD';
-    if (s.contains('MOFA') || s.contains('FOREIGN') || s.contains('الخارجية')) return 'MOFA';
-    if (s.contains('NCEMA')) return 'NCEMA';
-    if (s.contains('CENTCOM')) return 'CENTCOM';
-    if (s.contains('IDF')) return 'IDF';
-    if (s.contains('@') || s.contains('X.COM') || s.contains('TWITTER')) return 'X';
-    if (s.contains('INSTAGRAM') || s.contains(' IG')) return 'IG';
-    return 'COALITION';
+    final cats = <String>{};
+    // Platform detection
+    if (s.contains('@') || s.startsWith('X ') || s.contains('X.COM') || s.contains('TWITTER')) cats.add('X');
+    if (s.contains('INSTAGRAM') || s.contains(' IG') || s.startsWith('IG ')) cats.add('IG');
+    // Entity detection
+    if (s.contains('MOI') || s.contains('INTERIOR') || s.contains('الداخلية')) cats.add('MOI');
+    if (s.contains('MOD') || s.contains('DEFENSE') || s.contains('DEFENCE') || s.contains('الدفاع')) cats.add('MOD');
+    if (s.contains('MOFA') || s.contains('FOREIGN') || s.contains('الخارجية')) cats.add('MOFA');
+    if (s.contains('NCEMA')) cats.add('NCEMA');
+    if (s.contains('CENTCOM')) cats.add('CENTCOM');
+    if (s.contains('IDF')) cats.add('IDF');
+    if (cats.isEmpty) cats.add('COALITION');
+    return cats;
   }
 
   String _eventStatusLabel(EventStatus s) {
@@ -164,7 +170,9 @@ class _CrisisFilterScreenState extends ConsumerState<CrisisFilterScreen>
       result = result.where((e) => _eventCountryFilter.contains(_eventCountryFromTarget(e.target))).toList();
     }
     if (_eventSourceFilter.isNotEmpty) {
-      result = result.where((e) => _eventSourceFilter.contains(_eventSourceCategory(e.source))).toList();
+      result = result.where((e) =>
+        _eventSourceCategories(e.source).intersection(_eventSourceFilter).isNotEmpty
+      ).toList();
     }
     if (_eventStatusFilter.isNotEmpty) {
       result = result.where((e) => _eventStatusFilter.contains(_eventStatusLabel(e.status))).toList();

@@ -226,8 +226,11 @@ AlertAuthority _detectInstagramAuthority(String handle) {
   return AlertAuthority.coalition;
 }
 
-bool _isToday(int ts) {
-  return DateTime.now().millisecondsSinceEpoch - ts < 24 * 60 * 60 * 1000;
+/// Accept headlines from the last 72 hours (not just today).
+/// Conflict headlines stay relevant for days; 24h was too strict and
+/// caused 0 alerts when the RSS feed returned slightly-older items.
+bool _isRecent(int ts) {
+  return DateTime.now().millisecondsSinceEpoch - ts < 72 * 60 * 60 * 1000;
 }
 
 final _rng = Random();
@@ -322,6 +325,13 @@ class EmergencyAlertsNotifier extends StateNotifier<EmergencyAlertsState> {
 
   Future<void> _init() async {
     _readHeadlines = await _loadReadAlerts();
+    // Prevent stale read-cache from blocking ALL alerts.
+    // If the cache has grown too large, clear it so fresh headlines
+    // can generate alerts again on app restart.
+    if (_readHeadlines.length > 100) {
+      _readHeadlines.clear();
+      _saveReadAlerts(_readHeadlines);
+    }
 
     final ws = BreachSocketService.instance;
 
@@ -456,7 +466,7 @@ class EmergencyAlertsNotifier extends StateNotifier<EmergencyAlertsState> {
         final parsed = DateTime.tryParse(pubDate);
         if (parsed != null) pubTime = parsed.millisecondsSinceEpoch;
       }
-      if (pubTime > 0 && !_isToday(pubTime)) continue;
+      if (pubTime > 0 && !_isRecent(pubTime)) continue;
 
       final level = _detectAlertLevel(title);
       if (level == null) continue;

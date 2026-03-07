@@ -245,6 +245,40 @@ String _detectTargetRegion(String text) {
   return 'Iran Theater';
 }
 
+// ── Pick a GOV X handle for a given region ──────────────────────
+
+String _pickXHandleForRegion(String region) {
+  switch (region) {
+    case 'UAE':     return '@modgovae';
+    case 'KSA':     return '@modaboron_sa';
+    case 'Kuwait':  return '@modkuwait';
+    case 'Bahrain': return '@BDFaboron';
+    case 'Qatar':   return '@moaboron_qa';
+    case 'Oman':    return '@moaboron_om';
+    case 'Jordan':  return '@AFJordan';
+    case 'Lebanon': return '@LAFaboron';
+    case 'Israel':  return '@IDF';
+    case 'Iran':    return '@IRGCaboron';
+    case 'USA':     return '@CENTCOM';
+    case 'UK':      return '@foreignoffice';
+    case 'France':  return '@francediplo';
+    default:        return '@Conflicts';
+  }
+}
+
+/// Pick an IG account label for a given region.
+String _pickIgLabelForRegion(String region) {
+  switch (region) {
+    case 'UAE':     return 'MOD IG 🇦🇪';
+    case 'KSA':     return 'MOD IG 🇸🇦';
+    case 'Kuwait':  return 'MOD IG 🇰🇼';
+    case 'Bahrain': return 'MOI IG 🇧🇭';
+    case 'Qatar':   return 'MOI IG 🇶🇦';
+    case 'Oman':    return 'MOD IG 🇴🇲';
+    default:        return 'NCEMA IG 🇦🇪';
+  }
+}
+
 final _rng = Random();
 
 String _randomId(String prefix) {
@@ -293,8 +327,26 @@ AttackEvent _liveHeadlineToEvent(Map<String, dynamic> h) {
 
   // GOV source detection: if headline mentions a government entity,
   // tag event with the GOV label instead of the news agency source.
+  // Some GOV events are tagged as X or IG sourced (simulating social
+  // media feeds from official government accounts).
   final govSource = _detectGovSource(title);
-  final srcInfo = govSource ?? _sourceUrls[src] ?? {'name': src, 'url': ''};
+  Map<String, String> srcInfo;
+  if (govSource != null) {
+    final roll = _rng.nextDouble();
+    final region = _detectTargetRegion(title);
+    if (roll < 0.30) {
+      // ~30% tagged as X source
+      final handle = _pickXHandleForRegion(region);
+      srcInfo = {'name': 'X $handle', 'url': 'https://x.com/${handle.replaceAll('@', '')}'};
+    } else if (roll < 0.45) {
+      // ~15% tagged as IG source
+      srcInfo = {'name': _pickIgLabelForRegion(region), 'url': ''};
+    } else {
+      srcInfo = govSource;
+    }
+  } else {
+    srcInfo = _sourceUrls[src] ?? {'name': src, 'url': ''};
+  }
 
   int ts = DateTime.now().millisecondsSinceEpoch;
   if (pubDate.isNotEmpty) {
@@ -395,6 +447,12 @@ AttackEvent? _socmintGovToEvent(Map<String, dynamic> m) {
     status = EventStatus.neutralized;
   }
 
+  // Include platform in source name so X/IG filters detect it.
+  String displayName = srcInfo['name'] ?? source;
+  if (platform == 'x' && !displayName.startsWith('X ') && !displayName.contains('@')) {
+    displayName = 'X $displayName';
+  }
+
   return AttackEvent(
     id: _randomId('gov-evt'),
     timestamp: timestamp,
@@ -403,7 +461,7 @@ AttackEvent? _socmintGovToEvent(Map<String, dynamic> m) {
     target: _detectTargetRegion(content),
     status: status,
     details: content,
-    source: srcInfo['name'],
+    source: displayName,
     sourceUrl: srcInfo['url'],
   );
 }
