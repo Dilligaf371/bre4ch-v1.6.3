@@ -70,11 +70,12 @@ import FirebaseMessaging
   }
 
   // ── Centralized badge clearing ──
+  // Only resets badge count — does NOT remove delivered notifications
+  // so emergency alerts remain visible in the notification center.
   private func clearBadge(_ application: UIApplication) {
     application.applicationIconBadgeNumber = 0
     if #available(iOS 16.0, *) {
       UNUserNotificationCenter.current().setBadgeCount(0) { _ in }
     }
-    UNUserNotificationCenter.current().removeAllDeliveredNotifications()
   }
 }
