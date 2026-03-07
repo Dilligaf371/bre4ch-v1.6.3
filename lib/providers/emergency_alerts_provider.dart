@@ -1,16 +1,19 @@
 // ── Emergency Alerts Provider ────────────────────────────────────
 // WebSocket-first: subscribes to 'headlines' + 'socmint' channels.
 // Falls back to HTTP polling when WS is disconnected.
-// v1.6.3: Arabic keywords, Instagram alert escalation with authority boost.
+// v1.6.4: Missile→EXTREME, wider UAE detection, FCM→alerts bridge, sounds on notif.
 
 import 'dart:async';
 import 'dart:math';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/emergency_alert.dart';
 import '../services/headlines_service.dart';
 import '../services/breach_socket_service.dart';
 import '../services/alert_sound_service.dart';
+import '../services/push_notification_service.dart';
 import '../config/api.dart';
 
 // ── Keyword lists (EN + AR) ─────────────────────────────────────
@@ -21,21 +24,23 @@ const List<String> _extremeKeywords = [
   'khamenei killed', 'leader killed', 'capital struck',
   'strait of hormuz closed', 'temple mount',
   'mass casualty', 'nato article 5',
+  'missile', 'ballistic', 'warhead', 'icbm',
   // Arabic
   'نووي', 'سلاح كيميائي', 'ضحايا جماعية',
+  'صاروخ', 'صاروخ باليستي', 'رأس حربي',
 ];
 
 const List<String> _severeKeywords = [
   // English
   'killed', 'strike', 'attack', 'war', 'breaking',
-  'missile', 'drone', 'shot down', 'friendly fire',
-  'airport shut', 'airport hit', 'warhead',
+  'drone', 'shot down', 'friendly fire',
+  'airport shut', 'airport hit',
   'hezbollah', 'retaliation', 'sunk',
   'evacuation', 'evacuate', 'repatriation',
   'embassy closure', 'leave immediately',
   // Arabic
-  'صاروخ', 'هجوم', 'طائرة مسيرة', 'ضربة', 'قتل',
-  'حرب', 'رأس حربي', 'إعتراض',
+  'هجوم', 'طائرة مسيرة', 'ضربة', 'قتل',
+  'حرب', 'إعتراض',
   'إجلاء', 'مغادرة فورية',
 ];
 
@@ -78,16 +83,26 @@ AlertLevel? _detectAlertLevel(String title) {
 
 String _detectRegion(String title) {
   final lower = title.toLowerCase();
-  if (lower.contains('tehran') || lower.contains('isfahan') || lower.contains('natanz')) return 'IRAN';
-  if (lower.contains('israel') || lower.contains('tel aviv') || lower.contains('jerusalem')) return 'ISRAEL';
-  if (lower.contains('dubai') || lower.contains('uae') || lower.contains('abu dhabi')) return 'UAE';
-  if (lower.contains('kuwait')) return 'KUWAIT';
-  if (lower.contains('bahrain')) return 'BAHRAIN';
-  if (lower.contains('qatar') || lower.contains('doha')) return 'QATAR';
-  if (lower.contains('lebanon') || lower.contains('beirut')) return 'LEBANON';
+  if (lower.contains('tehran') || lower.contains('isfahan') || lower.contains('natanz') || lower.contains('ايران')) return 'IRAN';
+  if (lower.contains('israel') || lower.contains('tel aviv') || lower.contains('jerusalem') || lower.contains('اسرائيل')) return 'ISRAEL';
+  // UAE — extensive matching: cities, Arabic names, official accounts
+  if (lower.contains('dubai') || lower.contains('uae') || lower.contains('abu dhabi') ||
+      lower.contains('sharjah') || lower.contains('ajman') || lower.contains('fujairah') ||
+      lower.contains('ras al khaimah') || lower.contains('rak') || lower.contains('al ain') ||
+      lower.contains('emirates') || lower.contains('emirati') ||
+      lower.contains('الإمارات') || lower.contains('دبي') || lower.contains('أبوظبي') ||
+      lower.contains('الشارقة') || lower.contains('عجمان') || lower.contains('الفجيرة') ||
+      lower.contains('رأس الخيمة') || lower.contains('العين') ||
+      lower.contains('moiuae') || lower.contains('ncema') || lower.contains('modgovae')) return 'UAE';
+  if (lower.contains('saudi') || lower.contains('riyadh') || lower.contains('jeddah') || lower.contains('السعودية')) return 'KSA';
+  if (lower.contains('kuwait') || lower.contains('الكويت')) return 'KUWAIT';
+  if (lower.contains('bahrain') || lower.contains('البحرين')) return 'BAHRAIN';
+  if (lower.contains('qatar') || lower.contains('doha') || lower.contains('قطر')) return 'QATAR';
+  if (lower.contains('oman') || lower.contains('muscat') || lower.contains('عمان')) return 'OMAN';
+  if (lower.contains('lebanon') || lower.contains('beirut') || lower.contains('لبنان')) return 'LEBANON';
   if (lower.contains('cyprus')) return 'CYPRUS';
-  if (lower.contains('strait') || lower.contains('hormuz')) return 'STRAIT OF HORMUZ';
-  if (lower.contains('gulf')) return 'PERSIAN GULF';
+  if (lower.contains('strait') || lower.contains('hormuz') || lower.contains('هرمز')) return 'STRAIT OF HORMUZ';
+  if (lower.contains('gulf') || lower.contains('الخليج')) return 'PERSIAN GULF';
   return 'MIDDLE EAST THEATER';
 }
 
@@ -173,6 +188,8 @@ class EmergencyAlertsNotifier extends StateNotifier<EmergencyAlertsState> {
   StreamSubscription? _wsHeadlinesSub;
   StreamSubscription? _wsSocmintSub;
   StreamSubscription? _wsConnSub;
+  StreamSubscription? _fcmForegroundSub;
+  StreamSubscription? _fcmTapSub;
 
   Future<void> _init() async {
     _readHeadlines = await _loadReadAlerts();
@@ -196,6 +213,20 @@ class EmergencyAlertsNotifier extends StateNotifier<EmergencyAlertsState> {
       } catch (_) {}
     });
 
+    // ── FCM push notifications → create alerts + play sounds ────
+    final push = PushNotificationService.instance;
+    _fcmForegroundSub = push.onForegroundMessage.listen((message) {
+      if (!mounted) return;
+      _processPushNotification(message);
+    });
+    _fcmTapSub = push.onNotificationTap.listen((message) {
+      if (!mounted) return;
+      _processPushNotification(message);
+    });
+    // Handle cold-start notification
+    final initial = await push.getInitialMessage();
+    if (initial != null) _processPushNotification(initial);
+
     // ── Connection fallback ─────────────────────────────────────
     _wsConnSub = ws.connectionStream.listen((connected) {
       if (connected) {
@@ -213,6 +244,55 @@ class EmergencyAlertsNotifier extends StateNotifier<EmergencyAlertsState> {
       if (!mounted) return;
       _autoDismissExpired();
     });
+  }
+
+  /// Bridge FCM push notifications into the alert system.
+  void _processPushNotification(RemoteMessage message) {
+    final title = message.notification?.title ?? message.data['title'] as String? ?? '';
+    final body = message.notification?.body ?? message.data['body'] as String? ?? '';
+    final content = '$title $body';
+    if (content.trim().isEmpty) return;
+    if (_seen.contains(title)) return;
+
+    // Detect alert level from notification content
+    var level = _detectAlertLevel(content);
+    // If no keyword match, check data payload for severity
+    if (level == null) {
+      final severity = message.data['severity'] as String? ?? '';
+      switch (severity.toLowerCase()) {
+        case 'extreme': level = AlertLevel.extreme;
+        case 'severe': level = AlertLevel.severe;
+        case 'moderate': level = AlertLevel.moderate;
+        default: level = AlertLevel.severe; // Default: any push = at least SEVERE
+      }
+    }
+
+    _seen.add(title);
+    final region = _detectRegion(content);
+    final source = message.data['source'] as String? ?? 'PUSH';
+    final now = DateTime.now().millisecondsSinceEpoch;
+
+    final alert = EmergencyAlert(
+      id: _randomId('fcm'),
+      level: level,
+      headline: title.isNotEmpty ? title.toUpperCase() : body.toUpperCase(),
+      body: body.isNotEmpty ? body : title,
+      source: '$source [PUSH]',
+      sourceUrl: message.data['url'] as String?,
+      authority: _detectAuthority(region, source),
+      timestamp: now,
+      region: region,
+      dismissed: false,
+      readAt: null,
+      expiresAt: now + (_alertDuration[level] ?? 90000),
+    );
+
+    _alerts = [alert, ..._alerts].take(30).toList();
+    _emitState();
+
+    // Play alert sound
+    AlertSoundService.instance.playForLevel(level);
+    debugPrint('[ALERTS] FCM notification → $level alert: $title ($region)');
   }
 
   void _startHttpPolling() {
@@ -382,6 +462,8 @@ class EmergencyAlertsNotifier extends StateNotifier<EmergencyAlertsState> {
     _wsHeadlinesSub?.cancel();
     _wsSocmintSub?.cancel();
     _wsConnSub?.cancel();
+    _fcmForegroundSub?.cancel();
+    _fcmTapSub?.cancel();
     super.dispose();
   }
 }
