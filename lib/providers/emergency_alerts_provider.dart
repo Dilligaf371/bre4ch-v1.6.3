@@ -65,6 +65,21 @@ const Map<AlertLevel, int> _alertDuration = {
   AlertLevel.moderate: 60000,
 };
 
+// ── Test / drill detection ───────────────────────────────────────
+
+const List<String> _testKeywords = [
+  'test', 'drill', 'exercise', 'simulation', 'rehearsal', 'mock',
+  'تمرين', 'تجربة', 'محاكاة', 'اختبار',
+];
+
+bool _isTestAlert(String content) {
+  final lower = content.toLowerCase();
+  for (final kw in _testKeywords) {
+    if (lower.contains(kw)) return true;
+  }
+  return false;
+}
+
 // ── Detection helpers ────────────────────────────────────────────
 
 AlertLevel? _detectAlertLevel(String title) {
@@ -272,10 +287,15 @@ class EmergencyAlertsNotifier extends StateNotifier<EmergencyAlertsState> {
     final source = message.data['source'] as String? ?? 'PUSH';
     final now = DateTime.now().millisecondsSinceEpoch;
 
+    // TEST detection: prefix headline for UAE test/drill alerts
+    final isTest = _isTestAlert(content);
+    final rawHeadline = title.isNotEmpty ? title.toUpperCase() : body.toUpperCase();
+    final headline = (isTest && region == 'UAE') ? '[TEST] $rawHeadline' : rawHeadline;
+
     final alert = EmergencyAlert(
       id: _randomId('fcm'),
       level: level,
-      headline: title.isNotEmpty ? title.toUpperCase() : body.toUpperCase(),
+      headline: headline,
       body: body.isNotEmpty ? body : title,
       source: '$source [PUSH]',
       sourceUrl: message.data['url'] as String?,
@@ -327,10 +347,15 @@ class EmergencyAlertsNotifier extends StateNotifier<EmergencyAlertsState> {
       final source = map['source'] as String? ?? '';
       final timestamp = pubTime > 0 ? pubTime : now;
 
+      // TEST detection: prefix headline for UAE test/drill alerts
+      final isTest = _isTestAlert(title);
+      final rawHeadline = title.toUpperCase();
+      final headline = (isTest && region == 'UAE') ? '[TEST] $rawHeadline' : rawHeadline;
+
       newAlerts.add(EmergencyAlert(
         id: _randomId('ea'),
         level: level,
-        headline: title.toUpperCase(),
+        headline: headline,
         body: title,
         source: '$source [LIVE]',
         sourceUrl: map['link'] as String?,
@@ -376,9 +401,12 @@ class EmergencyAlertsNotifier extends StateNotifier<EmergencyAlertsState> {
     final now = DateTime.now().millisecondsSinceEpoch;
     final timestamp = m['timestamp'] as int? ?? now;
 
-    final headline = content.length > 120
+    // TEST detection: prefix headline for UAE test/drill alerts
+    final isTest = _isTestAlert(content);
+    final rawHeadline = content.length > 120
         ? content.substring(0, 120).toUpperCase()
         : content.toUpperCase();
+    final headline = (isTest && region == 'UAE') ? '[TEST] $rawHeadline' : rawHeadline;
 
     final alert = EmergencyAlert(
       id: _randomId('ig-ea'),

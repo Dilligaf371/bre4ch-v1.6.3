@@ -21,6 +21,8 @@
 		BB5A3BEC19326989AF49EAAB /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 06FC827951F0BBA549E181A1 /* Pods_RunnerTests.framework */; };
 		E220F0A99FE54D237A706EB2 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9EB9D22C46DD82570827CBF /* NotificationService.swift */; };
 		F1B2C3D4E5F6A7B800AABB01 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = F1B2C3D4E5F6A7B800AABB00 /* GoogleService-Info.plist */; };
+		B1A2C3D4E5F60002 /* siren.wav in Resources */ = {isa = PBXBuildFile; fileRef = B1A2C3D4E5F60001 /* siren.wav */; };
+		B1A2C3D4E5F60004 /* radar.wav in Resources */ = {isa = PBXBuildFile; fileRef = B1A2C3D4E5F60003 /* radar.wav */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -95,6 +97,8 @@
 		E08CFED1DDC248CEDD436582 /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		F1B2C3D4E5F6A7B800AABB00 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		F1B2C3D4E5F6A7B800AABB02 /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
+		B1A2C3D4E5F60001 /* siren.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = siren.wav; sourceTree = "<group>"; };
+		B1A2C3D4E5F60003 /* radar.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = radar.wav; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -334,6 +338,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B1A2C3D4E5F60002 /* siren.wav in Resources */,
+				B1A2C3D4E5F60004 /* radar.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

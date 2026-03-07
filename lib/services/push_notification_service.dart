@@ -46,18 +46,25 @@ class PushNotificationService {
       FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     }
 
-    // Request iOS notification permissions
+    // Request iOS notification permissions (criticalAlert for siren sounds)
     final settings = await _messaging.requestPermission(
       alert: true,
-      announcement: false,
+      announcement: true,
       badge: true,
       carPlay: false,
-      criticalAlert: false,
+      criticalAlert: true,
       provisional: false,
       sound: true,
     );
 
     debugPrint('[FCM] Permission: ${settings.authorizationStatus}');
+
+    // Show notifications when app is in foreground (banner + sound + badge)
+    await _messaging.setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized ||
         settings.authorizationStatus == AuthorizationStatus.provisional) {
