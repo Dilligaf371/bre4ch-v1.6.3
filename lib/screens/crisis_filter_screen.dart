@@ -116,25 +116,36 @@ class _CrisisFilterScreenState extends ConsumerState<CrisisFilterScreen>
 
   String _eventCountryFromTarget(String target) {
     final lower = target.toLowerCase();
-    if (lower.contains('uae') || lower.contains('dubai') || lower.contains('abu dhabi')) return 'UAE';
+    if (lower.contains('uae') || lower.contains('dubai') || lower.contains('abu dhabi') || lower.contains('sharjah') || lower.contains('emirates') || lower.contains('الإمارات')) return 'UAE';
     if (lower.contains('israel') || lower.contains('tel aviv') || lower.contains('jerusalem')) return 'ISRAEL';
-    if (lower.contains('iran') || lower.contains('tehran') || lower.contains('isfahan')) return 'IRAN';
-    if (lower.contains('ksa') || lower.contains('riyadh') || lower.contains('saudi')) return 'KSA';
+    if (lower.contains('iran') || lower.contains('tehran') || lower.contains('isfahan') || lower.contains('natanz')) return 'IRAN';
+    if (lower.contains('ksa') || lower.contains('riyadh') || lower.contains('saudi') || lower.contains('jeddah')) return 'KSA';
     if (lower.contains('kuwait')) return 'KUWAIT';
-    if (lower.contains('bahrain')) return 'BAHRAIN';
+    if (lower.contains('bahrain') || lower.contains('manama')) return 'BAHRAIN';
     if (lower.contains('qatar') || lower.contains('doha')) return 'QATAR';
+    if (lower.contains('oman') || lower.contains('muscat')) return 'OMAN';
+    if (lower.contains('jordan') || lower.contains('amman')) return 'JORDAN';
     if (lower.contains('lebanon') || lower.contains('beirut')) return 'LEBANON';
+    if (lower.contains('iraq') || lower.contains('baghdad') || lower.contains('pmf')) return 'IRAQ';
+    if (lower.contains('syria') || lower.contains('damascus')) return 'SYRIA';
+    if (lower.contains('yemen') || lower.contains('houthi') || lower.contains('sanaa')) return 'YEMEN';
+    if (lower.contains('usa') || lower.contains('centcom') || lower.contains('pentagon') || lower.contains('washington')) return 'USA';
+    if (lower.contains('uk') || lower.contains('britain') || lower.contains('london')) return 'UK';
+    if (lower.contains('france') || lower.contains('paris') || lower.contains('french')) return 'FRANCE';
     return 'OTHER';
   }
 
   String _eventSourceCategory(String? source) {
     if (source == null) return 'OTHER';
     final s = source.toUpperCase();
-    if (s.contains('MOI')) return 'MOI';
-    if (s.contains('MOD')) return 'MOD';
+    if (s.contains('MOI') || s.contains('INTERIOR') || s.contains('الداخلية')) return 'MOI';
+    if (s.contains('MOD') || s.contains('DEFENSE') || s.contains('DEFENCE') || s.contains('الدفاع')) return 'MOD';
+    if (s.contains('MOFA') || s.contains('FOREIGN') || s.contains('الخارجية')) return 'MOFA';
     if (s.contains('NCEMA')) return 'NCEMA';
     if (s.contains('CENTCOM')) return 'CENTCOM';
     if (s.contains('IDF')) return 'IDF';
+    if (s.contains('@') || s.contains('X.COM') || s.contains('TWITTER')) return 'X';
+    if (s.contains('INSTAGRAM') || s.contains(' IG')) return 'IG';
     return 'COALITION';
   }
 
@@ -170,7 +181,7 @@ class _CrisisFilterScreenState extends ConsumerState<CrisisFilterScreen>
         const SizedBox(height: 8),
         // Country filter
         FilterChipRow(
-          labels: const ['UAE', 'ISRAEL', 'IRAN', 'KSA', 'KUWAIT', 'BAHRAIN', 'QATAR', 'LEBANON'],
+          labels: const ['UAE', 'KSA', 'KUWAIT', 'BAHRAIN', 'QATAR', 'OMAN', 'JORDAN', 'ISRAEL', 'IRAN', 'LEBANON', 'IRAQ', 'SYRIA', 'YEMEN', 'USA', 'UK', 'FRANCE'],
           selected: _eventCountryFilter,
           onToggle: (label) => setState(() {
             _eventCountryFilter.contains(label) ? _eventCountryFilter.remove(label) : _eventCountryFilter.add(label);
@@ -180,7 +191,7 @@ class _CrisisFilterScreenState extends ConsumerState<CrisisFilterScreen>
         const SizedBox(height: 4),
         // Source filter
         FilterChipRow(
-          labels: const ['MOI', 'MOD', 'NCEMA', 'CENTCOM', 'IDF', 'COALITION'],
+          labels: const ['MOI', 'MOD', 'MOFA', 'NCEMA', 'CENTCOM', 'IDF', 'X', 'IG', 'COALITION'],
           selected: _eventSourceFilter,
           onToggle: (label) => setState(() {
             _eventSourceFilter.contains(label) ? _eventSourceFilter.remove(label) : _eventSourceFilter.add(label);
@@ -202,10 +213,7 @@ class _CrisisFilterScreenState extends ConsumerState<CrisisFilterScreen>
           child: RefreshIndicator(
             color: Palantir.accent,
             backgroundColor: Palantir.surface,
-            onRefresh: () async {
-              ref.invalidate(eventFeedProvider);
-              await Future.delayed(const Duration(seconds: 1));
-            },
+            onRefresh: () => ref.read(eventFeedProvider.notifier).refresh(),
             child: filtered.isEmpty
                 ? ListView(
                     children: [
@@ -426,14 +434,22 @@ class _CrisisFilterScreenState extends ConsumerState<CrisisFilterScreen>
 
   String _osintCountryFromRegion(String region) {
     final upper = region.toUpperCase();
-    if (upper.contains('UAE') || upper.contains('DUBAI') || upper.contains('ABU DHABI')) return 'UAE';
-    if (upper.contains('ISRAEL') || upper.contains('TEL AVIV')) return 'ISRAEL';
-    if (upper.contains('IRAN') || upper.contains('TEHRAN')) return 'IRAN';
+    if (upper.contains('UAE') || upper.contains('DUBAI') || upper.contains('ABU DHABI') || upper.contains('EMIRATES')) return 'UAE';
+    if (upper.contains('ISRAEL') || upper.contains('TEL AVIV') || upper.contains('JERUSALEM')) return 'ISRAEL';
+    if (upper.contains('IRAN') || upper.contains('TEHRAN') || upper.contains('ISFAHAN')) return 'IRAN';
     if (upper.contains('SAUDI') || upper.contains('KSA') || upper.contains('RIYADH')) return 'KSA';
     if (upper.contains('KUWAIT')) return 'KUWAIT';
-    if (upper.contains('BAHRAIN')) return 'BAHRAIN';
+    if (upper.contains('BAHRAIN') || upper.contains('MANAMA')) return 'BAHRAIN';
     if (upper.contains('QATAR') || upper.contains('DOHA')) return 'QATAR';
+    if (upper.contains('OMAN') || upper.contains('MUSCAT')) return 'OMAN';
+    if (upper.contains('JORDAN') || upper.contains('AMMAN')) return 'JORDAN';
     if (upper.contains('LEBANON') || upper.contains('BEIRUT')) return 'LEBANON';
+    if (upper.contains('IRAQ') || upper.contains('BAGHDAD')) return 'IRAQ';
+    if (upper.contains('SYRIA') || upper.contains('DAMASCUS')) return 'SYRIA';
+    if (upper.contains('YEMEN') || upper.contains('HOUTHI') || upper.contains('SANAA')) return 'YEMEN';
+    if (upper.contains('USA') || upper.contains('CENTCOM') || upper.contains('PENTAGON')) return 'USA';
+    if (upper.contains('UK') || upper.contains('BRITAIN')) return 'UK';
+    if (upper.contains('FRANCE') || upper.contains('FRENCH')) return 'FRANCE';
     return 'OTHER';
   }
 
@@ -454,13 +470,21 @@ class _CrisisFilterScreenState extends ConsumerState<CrisisFilterScreen>
         return 'MILITARY';
       case OsintSource.reuters:
       case OsintSource.ap:
+      case OsintSource.bloomberg:
         return 'WIRE';
       case OsintSource.aljazeera:
         return 'NEWS';
       case OsintSource.flightradar:
         return 'TRACKING';
+      case OsintSource.wam:
+      case OsintSource.spa:
+      case OsintSource.qna:
+      case OsintSource.bna:
+      case OsintSource.kuna:
+      case OsintSource.omanNews:
+        return 'GOV';
       default:
-        return 'OTHER';
+        return 'PRESS';
     }
   }
 
@@ -487,7 +511,7 @@ class _CrisisFilterScreenState extends ConsumerState<CrisisFilterScreen>
         const SizedBox(height: 8),
         // Country filter
         FilterChipRow(
-          labels: const ['UAE', 'ISRAEL', 'IRAN', 'KSA', 'KUWAIT', 'BAHRAIN', 'QATAR', 'LEBANON'],
+          labels: const ['UAE', 'KSA', 'KUWAIT', 'BAHRAIN', 'QATAR', 'OMAN', 'JORDAN', 'ISRAEL', 'IRAN', 'LEBANON', 'IRAQ', 'SYRIA', 'YEMEN', 'USA', 'UK', 'FRANCE'],
           selected: _osintCountryFilter,
           onToggle: (label) => setState(() {
             _osintCountryFilter.contains(label) ? _osintCountryFilter.remove(label) : _osintCountryFilter.add(label);
@@ -507,7 +531,7 @@ class _CrisisFilterScreenState extends ConsumerState<CrisisFilterScreen>
         const SizedBox(height: 4),
         // Source category filter
         FilterChipRow(
-          labels: const ['MILITARY', 'WIRE', 'NEWS', 'TRACKING', 'OTHER'],
+          labels: const ['MILITARY', 'GOV', 'WIRE', 'NEWS', 'PRESS', 'TRACKING'],
           selected: _osintSourceFilter,
           onToggle: (label) => setState(() {
             _osintSourceFilter.contains(label) ? _osintSourceFilter.remove(label) : _osintSourceFilter.add(label);

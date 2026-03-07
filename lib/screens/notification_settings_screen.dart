@@ -9,6 +9,7 @@ import '../config/theme.dart';
 import '../widgets/common/header_bar.dart';
 import '../widgets/common/palantir_card.dart';
 import '../providers/notification_preferences_provider.dart';
+import '../services/alert_sound_service.dart';
 
 class NotificationSettingsScreen extends ConsumerWidget {
   const NotificationSettingsScreen({super.key});
@@ -56,7 +57,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
                     const SizedBox(height: 16),
 
                     // Alert Sounds
-                    _buildAlertSoundsSection(prefs, notifier),
+                    _buildAlertSoundsSection(context, prefs, notifier),
                     const SizedBox(height: 16),
 
                     // Severity
@@ -136,7 +137,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildAlertSoundsSection(NotificationPreferences prefs, NotificationPreferencesNotifier notifier) {
+  Widget _buildAlertSoundsSection(BuildContext context, NotificationPreferences prefs, NotificationPreferencesNotifier notifier) {
     return PalantirCard(
       padding: const EdgeInsets.all(12),
       child: Column(
@@ -150,7 +151,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
                   children: [
                     Text('ALERT SOUNDS', style: AppTextStyles.sectionTitle),
                     const SizedBox(height: 4),
-                    Text('Audio alerts for high-priority events',
+                    Text('Customize audio alerts per severity',
                         style: AppTextStyles.sans(size: 11, color: Palantir.textMuted)),
                   ],
                 ),
@@ -163,44 +164,213 @@ class NotificationSettingsScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 12),
-          // Sound level descriptions
-          _soundLevelRow('EXTREME', 'Police siren (5s loop)', Palantir.danger),
+          // EXTREME sound picker
+          _soundPickerRow(
+            context,
+            level: 'EXTREME',
+            color: Palantir.danger,
+            currentSound: prefs.extremeSound,
+            enabled: prefs.enabled && prefs.soundEnabled,
+            onChanged: (s) => notifier.setExtremeSound(s),
+          ),
           const SizedBox(height: 8),
-          _soundLevelRow('SEVERE', 'Radar ping (single)', Palantir.orange),
+          // SEVERE sound picker
+          _soundPickerRow(
+            context,
+            level: 'SEVERE',
+            color: Palantir.orange,
+            currentSound: prefs.severeSound,
+            enabled: prefs.enabled && prefs.soundEnabled,
+            onChanged: (s) => notifier.setSevereSound(s),
+          ),
           const SizedBox(height: 8),
-          _soundLevelRow('MODERATE', 'Silent', Palantir.warning),
+          // MODERATE sound picker
+          _soundPickerRow(
+            context,
+            level: 'MODERATE',
+            color: Palantir.warning,
+            currentSound: prefs.moderateSound,
+            enabled: prefs.enabled && prefs.soundEnabled,
+            onChanged: (s) => notifier.setModerateSound(s),
+          ),
         ],
       ),
     );
   }
 
-  Widget _soundLevelRow(String level, String description, Color color) {
-    return Row(
-      children: [
-        Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: color,
+  Widget _soundPickerRow(
+    BuildContext context, {
+    required String level,
+    required Color color,
+    required String currentSound,
+    required bool enabled,
+    required ValueChanged<String> onChanged,
+  }) {
+    final soundLabel = availableAlertSounds[currentSound] ?? currentSound;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: enabled
+          ? () => _showSoundPicker(context, level, color, currentSound, onChanged)
+          : null,
+      child: Row(
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: enabled ? color : Palantir.textMuted,
+            ),
           ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          level,
-          style: AppTextStyles.mono(
-            size: 11,
-            weight: FontWeight.w700,
-            color: color,
-            letterSpacing: 0.8,
+          const SizedBox(width: 8),
+          Text(
+            level,
+            style: AppTextStyles.mono(
+              size: 11,
+              weight: FontWeight.w700,
+              color: enabled ? color : Palantir.textMuted,
+              letterSpacing: 0.8,
+            ),
           ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          description,
-          style: AppTextStyles.sans(size: 11, color: Palantir.textMuted),
-        ),
-      ],
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              soundLabel,
+              style: AppTextStyles.sans(
+                size: 12,
+                color: enabled ? Palantir.text : Palantir.textMuted,
+              ),
+            ),
+          ),
+          Icon(
+            Icons.chevron_right,
+            size: 16,
+            color: enabled ? Palantir.accent : Palantir.textMuted,
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSoundPicker(
+    BuildContext context,
+    String level,
+    Color color,
+    String currentSound,
+    ValueChanged<String> onChanged,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Palantir.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(
+                  children: [
+                    Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: color,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '$level ALERT SOUND',
+                      style: AppTextStyles.mono(
+                        size: 14,
+                        weight: FontWeight.w700,
+                        color: Palantir.text,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Tap to preview, select to apply',
+                  style: AppTextStyles.sans(size: 11, color: Palantir.textMuted),
+                ),
+                const SizedBox(height: 16),
+                // Sound options
+                ...availableAlertSounds.entries.map((e) {
+                  final isSelected = e.key == currentSound;
+                  return GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      // Preview sound
+                      AlertSoundService.instance.previewSound(e.key);
+                      // Apply selection
+                      onChanged(e.key);
+                      Navigator.of(ctx).pop();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 12, horizontal: 12),
+                      margin: const EdgeInsets.only(bottom: 4),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? color.withValues(alpha: 0.1)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(8),
+                        border: isSelected
+                            ? Border.all(
+                                color: color.withValues(alpha: 0.4), width: 1)
+                            : null,
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            isSelected
+                                ? Icons.radio_button_checked
+                                : Icons.radio_button_unchecked,
+                            size: 18,
+                            color: isSelected ? color : Palantir.textMuted,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              e.value,
+                              style: AppTextStyles.sans(
+                                size: 14,
+                                weight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
+                                color: isSelected
+                                    ? Palantir.text
+                                    : Palantir.textMuted,
+                              ),
+                            ),
+                          ),
+                          if (e.key != 'silent' && e.key != 'default')
+                            GestureDetector(
+                              onTap: () {
+                                AlertSoundService.instance.previewSound(e.key);
+                              },
+                              child: Icon(Icons.play_circle_outline,
+                                  size: 20, color: color),
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

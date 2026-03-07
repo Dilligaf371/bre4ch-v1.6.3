@@ -2,15 +2,25 @@
 // WebSocket-first with HTTP polling fallback.
 // WS: subscribes to 'osint' + 'headlines' channels.
 // HTTP: polls HeadlinesService + CentcomService when WS is disconnected.
+// Persistence: 60-day local cache via SharedPreferences.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/osint_item.dart';
 import '../services/headlines_service.dart';
 import '../services/centcom_service.dart';
 import '../services/breach_socket_service.dart';
 import '../config/api.dart';
+
+// ── Persistence constants ────────────────────────────────────────
+const String _osintCacheKey = 'osint_cache_v1';
+/// Retention covers from the start of the conflict (Oct 2023) to present.
+/// Using 600 days to ensure all historical data is preserved.
+const int _retentionDays = 600;
+const int _maxCachedItems = 10000;
 
 // ── Source config ────────────────────────────────────────────────
 
@@ -108,13 +118,22 @@ OsintItem liveHeadlineToOsint(Map<String, dynamic> h) {
   }
 
   String region = 'Middle East';
-  if (lower.contains('iran') || lower.contains('tehran')) region = 'Iran';
-  else if (lower.contains('israel') || lower.contains('tel aviv')) region = 'Israel';
-  else if (lower.contains('uae') || lower.contains('dubai')) region = 'UAE';
+  if (lower.contains('uae') || lower.contains('dubai') || lower.contains('abu dhabi') || lower.contains('sharjah') || lower.contains('emirates') || lower.contains('الإمارات') || lower.contains('دبي')) region = 'UAE';
+  else if (lower.contains('iran') || lower.contains('tehran') || lower.contains('isfahan')) region = 'Iran';
+  else if (lower.contains('israel') || lower.contains('tel aviv') || lower.contains('jerusalem')) region = 'Israel';
+  else if (lower.contains('saudi') || lower.contains('riyadh') || lower.contains('jeddah') || lower.contains('ksa')) region = 'KSA';
   else if (lower.contains('kuwait')) region = 'Kuwait';
-  else if (lower.contains('lebanon') || lower.contains('hezbollah')) region = 'Lebanon';
+  else if (lower.contains('bahrain') || lower.contains('manama')) region = 'Bahrain';
   else if (lower.contains('qatar') || lower.contains('doha')) region = 'Qatar';
-  else if (lower.contains('bahrain')) region = 'Bahrain';
+  else if (lower.contains('oman') || lower.contains('muscat')) region = 'Oman';
+  else if (lower.contains('jordan') || lower.contains('amman')) region = 'Jordan';
+  else if (lower.contains('lebanon') || lower.contains('beirut') || lower.contains('hezbollah')) region = 'Lebanon';
+  else if (lower.contains('iraq') || lower.contains('baghdad') || lower.contains('pmf')) region = 'Iraq';
+  else if (lower.contains('syria') || lower.contains('damascus')) region = 'Syria';
+  else if (lower.contains('yemen') || lower.contains('houthi') || lower.contains('sanaa')) region = 'Yemen';
+  else if (lower.contains('centcom') || lower.contains('pentagon') || lower.contains('washington')) region = 'USA';
+  else if (lower.contains('britain') || lower.contains('uk ')) region = 'UK';
+  else if (lower.contains('france') || lower.contains('french')) region = 'France';
 
   int ts = DateTime.now().millisecondsSinceEpoch;
   if (pubDate.isNotEmpty) {
@@ -158,23 +177,86 @@ OsintPriority _mapPriority(String name) {
 // ── StateNotifier ────────────────────────────────────────────────
 
 class OsintNotifier extends StateNotifier<List<OsintItem>> {
-  OsintNotifier(this._ref, {this.maxItems = 50}) : super([]) {
+  OsintNotifier(this._ref) : super([]) {
     _init();
   }
 
   final Ref _ref;
-  final int maxItems;
   Timer? _headlineTimer;
   Timer? _centcomTimer;
+  Timer? _persistTimer;
   final Set<String> _injected = {};
   final Set<String> _seenIds = {};
+  bool _cacheLoaded = false;
 
   StreamSubscription? _wsInitSub;
   StreamSubscription? _wsOsintSub;
   StreamSubscription? _wsHeadlinesSub;
   StreamSubscription? _wsConnSub;
 
-  void _init() {
+  // ── Persistence ──────────────────────────────────────────────────
+
+  Future<void> _loadCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_osintCacheKey);
+      if (raw == null || raw.isEmpty) { _cacheLoaded = true; return; }
+
+      final List<dynamic> decoded = jsonDecode(raw);
+      final cutoff = DateTime.now().subtract(const Duration(days: _retentionDays)).millisecondsSinceEpoch;
+
+      final cached = <OsintItem>[];
+      for (final item in decoded) {
+        try {
+          final osint = OsintItem.fromJson(item as Map<String, dynamic>);
+          if (osint.timestamp >= cutoff && _seenIds.add(osint.id)) {
+            _injected.add(osint.title);
+            cached.add(osint);
+          }
+        } catch (_) {}
+      }
+
+      if (cached.isNotEmpty && mounted) {
+        cached.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+        state = cached.take(_maxCachedItems).toList();
+      }
+      _cacheLoaded = true;
+    } catch (_) {
+      _cacheLoaded = true;
+    }
+  }
+
+  Future<void> _saveCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cutoff = DateTime.now().subtract(const Duration(days: _retentionDays)).millisecondsSinceEpoch;
+      final toSave = state.where((i) => i.timestamp >= cutoff).take(_maxCachedItems).toList();
+      final encoded = jsonEncode(toSave.map((i) => i.toJson()).toList());
+      await prefs.setString(_osintCacheKey, encoded);
+    } catch (_) {}
+  }
+
+  void _scheduleSave() {
+    _persistTimer?.cancel();
+    _persistTimer = Timer(const Duration(seconds: 5), _saveCache);
+  }
+
+  // ── Merge helper (deduped + sorted + pruned) ─────────────────────
+
+  void _mergeAndUpdate(List<OsintItem> newItems) {
+    if (newItems.isEmpty) return;
+    final cutoff = DateTime.now().subtract(const Duration(days: _retentionDays)).millisecondsSinceEpoch;
+    final merged = [...newItems, ...state];
+    merged.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    state = merged.where((i) => i.timestamp >= cutoff).take(_maxCachedItems).toList();
+    _scheduleSave();
+  }
+
+  // ── Init ─────────────────────────────────────────────────────────
+
+  void _init() async {
+    await _loadCache();
+
     final ws = BreachSocketService.instance;
 
     _wsInitSub = ws.channel(WsMessageType.init).listen((data) {
@@ -189,7 +271,7 @@ class OsintNotifier extends StateNotifier<List<OsintItem>> {
           final m = raw as Map<String, dynamic>;
           final id = m['id'] as String? ?? '';
           if (id.isEmpty || !_seenIds.add(id)) continue;
-          parsed.add(OsintItem(
+          final item = OsintItem(
             id: id,
             source: _mapOsintSource(m['source'] as String? ?? ''),
             title: m['title'] as String? ?? '',
@@ -198,10 +280,12 @@ class OsintNotifier extends StateNotifier<List<OsintItem>> {
             priority: _mapPriority(m['priority'] as String? ?? 'routine'),
             region: m['region'] as String? ?? 'Middle East',
             url: m['url'] as String?,
-          ));
+          );
+          _injected.add(item.title);
+          parsed.add(item);
         } catch (_) {}
       }
-      if (parsed.isNotEmpty) state = parsed.take(maxItems).toList();
+      _mergeAndUpdate(parsed);
     });
 
     _wsOsintSub = ws.channel(WsMessageType.osint).listen((data) {
@@ -221,7 +305,8 @@ class OsintNotifier extends StateNotifier<List<OsintItem>> {
           region: m['region'] as String? ?? 'Middle East',
           url: m['url'] as String?,
         );
-        state = [item, ...state].take(maxItems).toList();
+        _injected.add(item.title);
+        _mergeAndUpdate([item]);
       } catch (_) {}
     });
 
@@ -253,10 +338,7 @@ class OsintNotifier extends StateNotifier<List<OsintItem>> {
 
     final osintItems = newItems.map((h) => liveHeadlineToOsint(h as Map<String, dynamic>)).toList();
     for (final item in osintItems) { _injected.add(item.title); }
-
-    final merged = [...osintItems, ...state];
-    merged.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-    state = merged.take(maxItems).toList();
+    _mergeAndUpdate(osintItems);
   }
 
   void _startHttpPolling() {
@@ -277,9 +359,7 @@ class OsintNotifier extends StateNotifier<List<OsintItem>> {
       if (newItems.isEmpty) return;
       final osintItems = newItems.map(liveHeadlineToOsint).toList();
       for (final item in osintItems) { _injected.add(item.title); }
-      final merged = [...osintItems, ...state];
-      merged.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-      state = merged.take(maxItems).toList();
+      _mergeAndUpdate(osintItems);
     } catch (_) {}
   }
 
@@ -300,16 +380,17 @@ class OsintNotifier extends StateNotifier<List<OsintItem>> {
         url: b.link,
       )).toList();
       for (final item in osintItems) { _injected.add(item.title); }
-      final merged = [...osintItems, ...state];
-      merged.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-      state = merged.take(maxItems).toList();
+      _mergeAndUpdate(osintItems);
     } catch (_) {}
   }
 
+  /// Refresh fetches new data but KEEPS cached items (no data loss).
   Future<void> refresh() async {
     _injected.clear();
-    _seenIds.clear();
-    state = [];
+    // Re-add existing titles to avoid duplicates on re-fetch
+    for (final item in state) {
+      _injected.add(item.title);
+    }
     await Future.wait([_fetchLiveHeadlines(), _fetchCentcomBriefings()]);
   }
 
@@ -317,10 +398,13 @@ class OsintNotifier extends StateNotifier<List<OsintItem>> {
   void dispose() {
     _headlineTimer?.cancel();
     _centcomTimer?.cancel();
+    _persistTimer?.cancel();
     _wsInitSub?.cancel();
     _wsOsintSub?.cancel();
     _wsHeadlinesSub?.cancel();
     _wsConnSub?.cancel();
+    // Final save on dispose
+    _saveCache();
     super.dispose();
   }
 }

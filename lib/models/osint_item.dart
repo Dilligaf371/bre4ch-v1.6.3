@@ -49,6 +49,30 @@ class OsintItem {
     this.url,
   });
 
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'source': source.index,
+    'title': title,
+    'summary': summary,
+    'timestamp': timestamp,
+    'priority': priority.index,
+    'region': region,
+    'url': url,
+  };
+
+  factory OsintItem.fromJson(Map<String, dynamic> json) {
+    return OsintItem(
+      id: json['id'] as String? ?? '',
+      source: OsintSource.values[json['source'] as int? ?? 0],
+      title: json['title'] as String? ?? '',
+      summary: json['summary'] as String? ?? '',
+      timestamp: json['timestamp'] as int? ?? 0,
+      priority: OsintPriority.values[json['priority'] as int? ?? 3],
+      region: json['region'] as String? ?? 'Middle East',
+      url: json['url'] as String?,
+    );
+  }
+
   OsintItem copyWith({
     String? id,
     OsintSource? source,

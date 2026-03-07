@@ -644,7 +644,7 @@ class _WarStateScreenState extends ConsumerState<WarStateScreen> {
                       CollapsibleSection(
                         title: 'COALITION FORCES',
                         titleColor: NatoColors.friendly,
-                        initiallyExpanded: true,
+                        initiallyExpanded: _selectedCountry != 'ALL' && _isCoalitionFilter,
                         trailing: Text(
                           '${coalitionFiltered.length} ${coalitionFiltered.length == 1 ? 'NATION' : 'NATIONS'}',
                           style: AppTextStyles.mono(

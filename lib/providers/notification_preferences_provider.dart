@@ -17,6 +17,10 @@ class NotificationPreferences {
   final Set<String> cities;
   final Set<String> types;
   final Set<String> severities;
+  // Custom sound per severity level
+  final String extremeSound;
+  final String severeSound;
+  final String moderateSound;
 
   const NotificationPreferences({
     this.enabled = false,
@@ -25,6 +29,9 @@ class NotificationPreferences {
     this.cities = const {},
     this.types = const {'danger'},
     this.severities = const {'extreme', 'severe'},
+    this.extremeSound = 'siren',
+    this.severeSound = 'radar',
+    this.moderateSound = 'silent',
   });
 
   NotificationPreferences copyWith({
@@ -34,6 +41,9 @@ class NotificationPreferences {
     Set<String>? cities,
     Set<String>? types,
     Set<String>? severities,
+    String? extremeSound,
+    String? severeSound,
+    String? moderateSound,
   }) {
     return NotificationPreferences(
       enabled: enabled ?? this.enabled,
@@ -42,9 +52,20 @@ class NotificationPreferences {
       cities: cities ?? this.cities,
       types: types ?? this.types,
       severities: severities ?? this.severities,
+      extremeSound: extremeSound ?? this.extremeSound,
+      severeSound: severeSound ?? this.severeSound,
+      moderateSound: moderateSound ?? this.moderateSound,
     );
   }
 }
+
+/// Available alert sounds (key → display label)
+const Map<String, String> availableAlertSounds = {
+  'siren': '🚨  Police Siren',
+  'radar': '📡  Radar Ping',
+  'default': '🔔  System Default',
+  'silent': '🔇  Silent',
+};
 
 // ── Available Options ───────────────────────────────────────────────
 
@@ -129,6 +150,9 @@ class NotificationPreferencesNotifier
     final severities =
         (prefs.getStringList('${_prefsPrefix}severities') ?? ['extreme', 'severe'])
             .toSet();
+    final extremeSound = prefs.getString('${_prefsPrefix}sound_extreme') ?? 'siren';
+    final severeSound = prefs.getString('${_prefsPrefix}sound_severe') ?? 'radar';
+    final moderateSound = prefs.getString('${_prefsPrefix}sound_moderate') ?? 'silent';
 
     state = NotificationPreferences(
       enabled: enabled,
@@ -137,6 +161,9 @@ class NotificationPreferencesNotifier
       cities: cities,
       types: types,
       severities: severities,
+      extremeSound: extremeSound,
+      severeSound: severeSound,
+      moderateSound: moderateSound,
     );
   }
 
@@ -150,6 +177,9 @@ class NotificationPreferencesNotifier
     await prefs.setStringList('${_prefsPrefix}types', state.types.toList());
     await prefs.setStringList(
         '${_prefsPrefix}severities', state.severities.toList());
+    await prefs.setString('${_prefsPrefix}sound_extreme', state.extremeSound);
+    await prefs.setString('${_prefsPrefix}sound_severe', state.severeSound);
+    await prefs.setString('${_prefsPrefix}sound_moderate', state.moderateSound);
   }
 
   Future<void> toggleEnabled(bool value) async {
@@ -169,6 +199,21 @@ class NotificationPreferencesNotifier
 
   Future<void> toggleSound(bool value) async {
     state = state.copyWith(soundEnabled: value);
+    await _save();
+  }
+
+  Future<void> setExtremeSound(String sound) async {
+    state = state.copyWith(extremeSound: sound);
+    await _save();
+  }
+
+  Future<void> setSevereSound(String sound) async {
+    state = state.copyWith(severeSound: sound);
+    await _save();
+  }
+
+  Future<void> setModerateSound(String sound) async {
+    state = state.copyWith(moderateSound: sound);
     await _save();
   }
 

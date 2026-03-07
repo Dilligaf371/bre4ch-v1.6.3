@@ -32,7 +32,7 @@ class DeltaSScreen extends ConsumerStatefulWidget {
 }
 
 class _DeltaSScreenState extends ConsumerState<DeltaSScreen> {
-  final Set<String> _severityFilter = {};
+  final Set<String> _socmintSourceFilter = {};
   Timer? _clockTimer;
   DateTime _now = DateTime.now().toUtc();
 
@@ -82,16 +82,16 @@ class _DeltaSScreenState extends ConsumerState<DeltaSScreen> {
         // Platform stats
         _buildPlatformStats(allSocmint),
         const SizedBox(height: 8),
-        // Severity filter
+        // Source type filter
         FilterChipRow(
-          labels: const ['CRIT', 'HIGH', 'MED', 'LOW'],
-          selected: _severityFilter,
+          labels: const ['MISSILES', 'MOI', 'MOD', 'MOFA', 'GOV'],
+          selected: _socmintSourceFilter,
           onToggle: (label) {
             setState(() {
-              if (_severityFilter.contains(label)) {
-                _severityFilter.remove(label);
+              if (_socmintSourceFilter.contains(label)) {
+                _socmintSourceFilter.remove(label);
               } else {
-                _severityFilter.add(label);
+                _socmintSourceFilter.add(label);
               }
             });
           },
@@ -127,24 +127,51 @@ class _DeltaSScreenState extends ConsumerState<DeltaSScreen> {
   }
 
   List<SocmintItem> _filteredSocmint(List<SocmintItem> items) {
-    if (_severityFilter.isEmpty) return items;
+    if (_socmintSourceFilter.isEmpty) return items;
     return items.where((item) {
-      final label = _severityLabel(item.severity);
-      return _severityFilter.contains(label);
+      final tags = _socmintSourceTags(item);
+      return _socmintSourceFilter.any((f) => tags.contains(f));
     }).toList();
   }
 
-  String _severityLabel(SocmintSeverity s) {
-    switch (s) {
-      case SocmintSeverity.critical:
-        return 'CRIT';
-      case SocmintSeverity.high:
-        return 'HIGH';
-      case SocmintSeverity.medium:
-        return 'MED';
-      case SocmintSeverity.low:
-        return 'LOW';
+  /// Classify a SOCMINT item into source/topic tags for filtering
+  Set<String> _socmintSourceTags(SocmintItem item) {
+    final tags = <String>{};
+    final lower = item.content.toLowerCase();
+    final srcLower = item.source.toLowerCase();
+
+    // MISSILES — missile / ballistic / rocket / intercept related
+    if (lower.contains('missile') || lower.contains('ballistic') || lower.contains('rocket') ||
+        lower.contains('intercept') || lower.contains('صاروخ') || lower.contains('باليستي') ||
+        lower.contains('اعتراض') || lower.contains('thaad') || lower.contains('patriot') ||
+        lower.contains('warhead') || lower.contains('icbm')) {
+      tags.add('MISSILES');
     }
+    // MOI — Ministry of Interior
+    if (srcLower.contains('moi') || srcLower.contains('interior') || srcLower.contains('الداخلية') ||
+        srcLower.contains('ncema') || srcLower.contains('aboron_uae')) {
+      tags.add('MOI');
+    }
+    // MOD — Ministry of Defense
+    if (srcLower.contains('mod') || srcLower.contains('defense') || srcLower.contains('defence') ||
+        srcLower.contains('الدفاع') || srcLower.contains('modgovae') || srcLower.contains('centcom') ||
+        srcLower.contains('idf') || srcLower.contains('dod')) {
+      tags.add('MOD');
+    }
+    // MOFA — Ministry of Foreign Affairs
+    if (srcLower.contains('mofa') || srcLower.contains('foreign') || srcLower.contains('الخارجية') ||
+        srcLower.contains('mofaic') || srcLower.contains('fcdo') || srcLower.contains('state dept')) {
+      tags.add('MOFA');
+    }
+    // GOV — any official government source
+    if (item.isOfficialGov || srcLower.contains('wam') || srcLower.contains('spa') ||
+        srcLower.contains('qna') || srcLower.contains('bna') || srcLower.contains('kuna') ||
+        srcLower.contains('ona') || tags.contains('MOI') || tags.contains('MOD') ||
+        tags.contains('MOFA')) {
+      tags.add('GOV');
+    }
+
+    return tags;
   }
 
   Widget _buildPlatformStats(List<SocmintItem> items) {
