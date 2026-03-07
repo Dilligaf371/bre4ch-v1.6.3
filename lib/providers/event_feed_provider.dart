@@ -28,6 +28,7 @@ const int _maxCachedEvents = 10000;
 // ── Source URL mapping ───────────────────────────────────────────
 
 const Map<String, Map<String, String>> _sourceUrls = {
+  // ── News agencies ──
   'CENTCOM':    {'name': 'CENTCOM',    'url': 'https://www.centcom.mil'},
   'Reuters':    {'name': 'Reuters',    'url': 'https://www.reuters.com/world/middle-east/'},
   'Al Jazeera': {'name': 'Al Jazeera', 'url': 'https://www.aljazeera.com/tag/iran/'},
@@ -35,23 +36,136 @@ const Map<String, Map<String, String>> _sourceUrls = {
   'IDF':        {'name': 'IDF',        'url': 'https://www.idf.il'},
   'DoD':        {'name': 'DoD',        'url': 'https://www.defense.gov'},
   'BBC':        {'name': 'BBC',        'url': 'https://www.bbc.com/news/world/middle_east'},
-  // X (Twitter) — official gov accounts
+  // ── X (Twitter) — UAE ──
   '@modgovae':      {'name': 'MOD UAE 🇦🇪',     'url': 'https://x.com/modgovae'},
   '@ABORON_uae':    {'name': 'MOI UAE 🇦🇪',     'url': 'https://x.com/ABORON_uae'},
   '@ABORON_ncema':  {'name': 'NCEMA 🇦🇪',       'url': 'https://x.com/ABORON_ncema'},
   '@WAaboron':      {'name': 'WAM 🇦🇪',         'url': 'https://x.com/WAaboron'},
   '@MoFAICaboron':  {'name': 'MoFA UAE 🇦🇪',    'url': 'https://x.com/MoFAICaboron'},
-  // X — KSA
-  '@modaboron':     {'name': 'MOD KSA 🇸🇦',     'url': 'https://x.com/modaboron'},
-  '@SPaboron':      {'name': 'SPA 🇸🇦',         'url': 'https://x.com/SPaboron'},
-  // X — OSINT accounts
-  '@Aboron_Intel':  {'name': 'Intel OSINT',     'url': 'https://x.com/Conflicts'},
-  // Instagram — official gov accounts
+  '@HaboronZayed':  {'name': 'Presidency UAE 🇦🇪','url': 'https://x.com/HaboronZayed'},
+  // ── X — KSA ──
+  '@modaboron_sa':  {'name': 'MOD KSA 🇸🇦',     'url': 'https://x.com/modaboron_sa'},
+  '@moaboron_sa':   {'name': 'MOI KSA 🇸🇦',     'url': 'https://x.com/moaboron_sa'},
+  '@kaboron_sa':    {'name': 'MoFA KSA 🇸🇦',    'url': 'https://x.com/kaboron_sa'},
+  '@SPAaboron':     {'name': 'SPA 🇸🇦',         'url': 'https://x.com/SPAaboron'},
+  // ── X — Kuwait ──
+  '@modkuwait':     {'name': 'MOD Kuwait 🇰🇼',  'url': 'https://x.com/modkuwait'},
+  '@moaboron_kw':   {'name': 'MOI Kuwait 🇰🇼',  'url': 'https://x.com/moaboron_kw'},
+  '@maboron_kw':    {'name': 'MoFA Kuwait 🇰🇼', 'url': 'https://x.com/maboron_kw'},
+  // ── X — Bahrain ──
+  '@moaboron_bh':   {'name': 'MOI Bahrain 🇧🇭', 'url': 'https://x.com/moaboron_bh'},
+  '@maboron_bh':    {'name': 'MoFA Bahrain 🇧🇭','url': 'https://x.com/maboron_bh'},
+  '@BDFaboron':     {'name': 'MOD Bahrain 🇧🇭', 'url': 'https://x.com/BDFaboron'},
+  // ── X — Qatar ──
+  '@moaboron_qa':   {'name': 'MOI Qatar 🇶🇦',   'url': 'https://x.com/moaboron_qa'},
+  '@moaboron_qa_mfa':{'name': 'MoFA Qatar 🇶🇦', 'url': 'https://x.com/moaboron_qa_mfa'},
+  '@QNAaboron':     {'name': 'QNA 🇶🇦',         'url': 'https://x.com/QNAaboron'},
+  // ── X — Oman ──
+  '@moaboron_om':   {'name': 'MOD Oman 🇴🇲',    'url': 'https://x.com/moaboron_om'},
+  '@maboron_om':    {'name': 'MoFA Oman 🇴🇲',   'url': 'https://x.com/maboron_om'},
+  '@OMAaboron':     {'name': 'ONA 🇴🇲',         'url': 'https://x.com/OMAaboron'},
+  // ── X — Jordan ──
+  '@AFJordan':      {'name': 'MOD Jordan 🇯🇴',  'url': 'https://x.com/AFJordan'},
+  '@PetraNewsAgency':{'name': 'Petra 🇯🇴',      'url': 'https://x.com/PetraNewsAgency'},
+  // ── X — Lebanon ──
+  '@LAFaboron':     {'name': 'MOD Lebanon 🇱🇧', 'url': 'https://x.com/LAFaboron'},
+  '@NNAaboron':     {'name': 'NNA 🇱🇧',         'url': 'https://x.com/NNAaboron'},
+  // ── X — Israel ──
+  '@IDF':           {'name': 'IDF 🇮🇱',          'url': 'https://x.com/IDF'},
+  '@IsraelMFA':     {'name': 'MoFA Israel 🇮🇱', 'url': 'https://x.com/IsraelMFA'},
+  '@Israel':        {'name': 'Israel 🇮🇱',       'url': 'https://x.com/Israel'},
+  // ── X — Iran ──
+  '@IRGCaboron':    {'name': 'IRGC 🇮🇷',        'url': 'https://x.com/IRGCaboron'},
+  '@IranMilitary':  {'name': 'MOD Iran 🇮🇷',    'url': 'https://x.com/IranMilitary'},
+  // ── X — Coalition / Military ──
+  '@CENTCOM':       {'name': 'CENTCOM',          'url': 'https://x.com/CENTCOM'},
+  '@DeptofDefense': {'name': 'DoD 🇺🇸',         'url': 'https://x.com/DeptofDefense'},
+  '@statedept':     {'name': 'State Dept 🇺🇸',  'url': 'https://x.com/statedept'},
+  '@foreignoffice': {'name': 'FCDO 🇬🇧',        'url': 'https://x.com/foreignoffice'},
+  '@francediplo':   {'name': 'MEAE 🇫🇷',        'url': 'https://x.com/francediplo'},
+  '@NATO':          {'name': 'NATO',             'url': 'https://x.com/NATO'},
+  // ── X — OSINT ──
+  '@Conflicts':     {'name': 'X @Conflicts',    'url': 'https://x.com/Conflicts'},
+  '@IntelCrab':     {'name': 'X @IntelCrab',    'url': 'https://x.com/IntelCrab'},
+  '@sentdefender':  {'name': 'X @sentdefender', 'url': 'https://x.com/sentdefender'},
+  '@OSINTdefender': {'name': 'X @OSINTdefender','url': 'https://x.com/OSINTdefender'},
+  '@ELINTNews':     {'name': 'X @ELINTNews',   'url': 'https://x.com/ELINTNews'},
+  // ── Instagram — official gov accounts ──
   'ncaboron':       {'name': 'NCEMA IG 🇦🇪',    'url': 'https://instagram.com/ncaboron'},
   'moiuae':         {'name': 'MOI IG 🇦🇪',      'url': 'https://instagram.com/moiuae'},
-  'modgovae_ig':    {'name': 'MOD IG 🇦🇪',      'url': 'https://instagram.com/modgovae'},
+  'modgovae':       {'name': 'MOD IG 🇦🇪',      'url': 'https://instagram.com/modgovae'},
   'maboron_uae':    {'name': 'MoFA IG 🇦🇪',     'url': 'https://instagram.com/maboron_uae'},
+  'modaboron_sa':   {'name': 'MOD IG 🇸🇦',      'url': 'https://instagram.com/modaboron_sa'},
+  'moaboron_sa':    {'name': 'MOI IG 🇸🇦',      'url': 'https://instagram.com/moaboron_sa'},
+  'moaboron_qa':    {'name': 'MOI IG 🇶🇦',      'url': 'https://instagram.com/moaboron_qa'},
+  'moaboron_bh':    {'name': 'MOI IG 🇧🇭',      'url': 'https://instagram.com/moaboron_bh'},
+  'moaboron_kw':    {'name': 'MOI IG 🇰🇼',      'url': 'https://instagram.com/moaboron_kw'},
+  'modkuwait':      {'name': 'MOD IG 🇰🇼',      'url': 'https://instagram.com/modkuwait'},
+  'moaboron_om':    {'name': 'MOD IG 🇴🇲',      'url': 'https://instagram.com/moaboron_om'},
 };
+
+// ── Official GOV handles (lowercase) for socmint→event bridge ────
+
+final Set<String> _officialGovHandles = _sourceUrls.keys
+    .where((k) => k.startsWith('@') || !k.contains(' '))
+    .where((k) => k != 'CENTCOM' && k != 'Reuters' && k != 'Al Jazeera' &&
+                   k != 'AP' && k != 'IDF' && k != 'DoD' && k != 'BBC')
+    .map((k) => k.toLowerCase())
+    .toSet();
+
+// ── Content-based GOV source detection ──────────────────────────
+
+/// Check if headline title mentions a GOV entity → return display label.
+/// This ensures events about government announcements are tagged properly
+/// instead of showing the RSS source (Reuters, AP, etc.).
+Map<String, String>? _detectGovSource(String title) {
+  final lower = title.toLowerCase();
+  final region = _detectTargetRegion(title);
+
+  // MOD: defense / military ministry
+  if (lower.contains('ministry of defense') || lower.contains('ministry of defence') ||
+      lower.contains('defense ministry') || lower.contains('defence ministry') ||
+      lower.contains('وزارة الدفاع') || lower.contains('armed forces statement') ||
+      lower.contains('بيان القوات المسلحة')) {
+    return _govLabel('MOD', region);
+  }
+
+  // MOI: interior / police / security
+  if (lower.contains('ministry of interior') || lower.contains('interior ministry') ||
+      lower.contains('وزارة الداخلية') || lower.contains('police forces') ||
+      lower.contains('security directorate') || lower.contains('الأمن العام')) {
+    return _govLabel('MOI', region);
+  }
+
+  // MOFA: foreign affairs / embassy / consular
+  if (lower.contains('foreign affairs') || lower.contains('foreign ministry') ||
+      lower.contains('وزارة الخارجية') || lower.contains('embassy statement') ||
+      lower.contains('consular') || lower.contains('بيان السفارة')) {
+    return _govLabel('MOFA', region);
+  }
+
+  // NCEMA: emergency management / civil defense
+  if (lower.contains('ncema') || lower.contains('emergency management') ||
+      lower.contains('civil defense') || lower.contains('civil defence') ||
+      lower.contains('إدارة الطوارئ') || lower.contains('الدفاع المدني')) {
+    return _govLabel('NCEMA', region);
+  }
+
+  return null;
+}
+
+const Map<String, String> _regionFlags = {
+  'UAE': '🇦🇪', 'Iran': '🇮🇷', 'Israel': '🇮🇱', 'KSA': '🇸🇦',
+  'Kuwait': '🇰🇼', 'Bahrain': '🇧🇭', 'Qatar': '🇶🇦', 'Oman': '🇴🇲',
+  'Jordan': '🇯🇴', 'Lebanon': '🇱🇧', 'Iraq': '🇮🇶', 'Syria': '🇸🇾',
+  'Yemen': '🇾🇪', 'USA': '🇺🇸', 'UK': '🇬🇧', 'France': '🇫🇷',
+};
+
+Map<String, String> _govLabel(String entity, String region) {
+  final flag = _regionFlags[region] ?? '';
+  final label = flag.isNotEmpty ? '$entity $region $flag' : entity;
+  return {'name': label, 'url': ''};
+}
 
 // ── Conflict keyword filter ──────────────────────────────────────
 
@@ -144,7 +258,10 @@ AttackEvent _liveHeadlineToEvent(Map<String, dynamic> h) {
     status = EventStatus.neutralized;
   }
 
-  final srcInfo = _sourceUrls[src] ?? {'name': src, 'url': ''};
+  // GOV source detection: if headline mentions a government entity,
+  // tag event with the GOV label instead of the news agency source.
+  final govSource = _detectGovSource(title);
+  final srcInfo = govSource ?? _sourceUrls[src] ?? {'name': src, 'url': ''};
 
   int ts = DateTime.now().millisecondsSinceEpoch;
   if (pubDate.isNotEmpty) {
@@ -161,7 +278,7 @@ AttackEvent _liveHeadlineToEvent(Map<String, dynamic> h) {
     status: status,
     details: title,
     source: srcInfo['name'],
-    sourceUrl: link.isNotEmpty ? link : srcInfo['url'],
+    sourceUrl: link.isNotEmpty ? link : (srcInfo['url'] ?? ''),
   );
 }
 
@@ -197,6 +314,67 @@ AttackEvent _liveuamapToEvent(Map<String, dynamic> e) {
   );
 }
 
+// ── Convert SOCMINT GOV post to AttackEvent ─────────────────────
+
+AttackEvent? _socmintGovToEvent(Map<String, dynamic> m) {
+  final platform = m['platform'] as String? ?? '';
+  final source = m['source'] as String? ?? '';
+  final content = m['content'] as String? ?? '';
+  final timestamp = m['timestamp'] as int? ?? DateTime.now().millisecondsSinceEpoch;
+
+  if (platform != 'x' && platform != 'instagram') return null;
+
+  // Only bridge official GOV accounts
+  final normalized = source.toLowerCase();
+  if (!_officialGovHandles.contains(normalized)) return null;
+
+  // Filter: must contain conflict-relevant content
+  final lowerContent = content.toLowerCase();
+  if (!_conflictKeywords.any((kw) => lowerContent.contains(kw))) return null;
+
+  // Lookup display name from _sourceUrls (try original case, then lowercase)
+  final srcInfo = _sourceUrls[source] ??
+      _sourceUrls[normalized] ??
+      {'name': source, 'url': platform == 'x'
+          ? 'https://x.com/${source.replaceAll('@', '')}'
+          : 'https://instagram.com/${source.replaceAll('@', '')}'};
+
+  // Detect attack type
+  AttackType type = AttackType.cruise;
+  if (lowerContent.contains('drone') || lowerContent.contains('uav')) {
+    type = AttackType.drone;
+  } else if (lowerContent.contains('missile') || lowerContent.contains('ballistic') ||
+             lowerContent.contains('rocket')) {
+    type = AttackType.ballistic;
+  } else if (lowerContent.contains('cyber') || lowerContent.contains('hack')) {
+    type = AttackType.cyber;
+  } else if (lowerContent.contains('artillery') || lowerContent.contains('shell')) {
+    type = AttackType.artillery;
+  }
+
+  EventStatus status = EventStatus.ongoing;
+  if (lowerContent.contains('intercept') || lowerContent.contains('shot down')) {
+    status = EventStatus.intercepted;
+  } else if (lowerContent.contains('hit') || lowerContent.contains('struck') ||
+             lowerContent.contains('killed') || lowerContent.contains('destroyed')) {
+    status = EventStatus.impact;
+  } else if (lowerContent.contains('neutraliz')) {
+    status = EventStatus.neutralized;
+  }
+
+  return AttackEvent(
+    id: _randomId('gov-evt'),
+    timestamp: timestamp,
+    type: type,
+    origin: platform == 'x' ? 'X $source' : 'IG $source',
+    target: _detectTargetRegion(content),
+    status: status,
+    details: content,
+    source: srcInfo['name'],
+    sourceUrl: srcInfo['url'],
+  );
+}
+
 // ── StateNotifier ────────────────────────────────────────────────
 
 class EventFeedNotifier extends StateNotifier<List<AttackEvent>> {
@@ -214,6 +392,7 @@ class EventFeedNotifier extends StateNotifier<List<AttackEvent>> {
 
   StreamSubscription? _wsSub;
   StreamSubscription? _wsHeadlinesSub;
+  StreamSubscription? _wsSocmintSub;
   StreamSubscription? _wsInitSub;
   StreamSubscription? _wsConnSub;
   bool _wsActive = false;
@@ -311,6 +490,19 @@ class EventFeedNotifier extends StateNotifier<List<AttackEvent>> {
     _wsHeadlinesSub = ws.channel(WsMessageType.headlines).listen((data) {
       if (!mounted) return;
       _processHeadlines(data as List<dynamic>);
+    });
+
+    // ── Subscribe to WS socmint (bridge GOV posts → events) ─────
+    _wsSocmintSub = ws.channel(WsMessageType.socmint).listen((data) {
+      if (!mounted) return;
+      try {
+        final evt = _socmintGovToEvent(data as Map<String, dynamic>);
+        if (evt == null) return;
+        final hash = _contentHash(evt.details, evt.source ?? '', '');
+        if (_injected.contains(hash)) return; // dedupe
+        _injected.add(hash);
+        _mergeAndUpdate([evt]);
+      } catch (_) {}
     });
 
     // ── Connection state: toggle HTTP polling fallback ──────────
@@ -450,6 +642,7 @@ class EventFeedNotifier extends StateNotifier<List<AttackEvent>> {
     _persistTimer?.cancel();
     _wsSub?.cancel();
     _wsHeadlinesSub?.cancel();
+    _wsSocmintSub?.cancel();
     _wsInitSub?.cancel();
     _wsConnSub?.cancel();
     _saveCache();
