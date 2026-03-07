@@ -9,7 +9,6 @@ import '../config/theme.dart';
 import '../widgets/common/header_bar.dart';
 import '../widgets/common/palantir_card.dart';
 import '../providers/notification_preferences_provider.dart';
-import '../services/alert_sound_service.dart';
 
 class NotificationSettingsScreen extends ConsumerWidget {
   const NotificationSettingsScreen({super.key});
@@ -299,7 +298,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Tap to preview, select to apply',
+                  'Select notification sound',
                   style: AppTextStyles.sans(size: 11, color: Palantir.textMuted),
                 ),
                 const SizedBox(height: 16),
@@ -309,9 +308,6 @@ class NotificationSettingsScreen extends ConsumerWidget {
                   return GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () {
-                      // Preview sound
-                      AlertSoundService.instance.previewSound(e.key);
-                      // Apply selection
                       onChanged(e.key);
                       Navigator.of(ctx).pop();
                     },
@@ -353,14 +349,6 @@ class NotificationSettingsScreen extends ConsumerWidget {
                               ),
                             ),
                           ),
-                          if (e.key != 'silent' && e.key != 'default')
-                            GestureDetector(
-                              onTap: () {
-                                AlertSoundService.instance.previewSound(e.key);
-                              },
-                              child: Icon(Icons.play_circle_outline,
-                                  size: 20, color: color),
-                            ),
                         ],
                       ),
                     ),

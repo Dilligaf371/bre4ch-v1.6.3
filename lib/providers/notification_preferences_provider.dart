@@ -29,8 +29,8 @@ class NotificationPreferences {
     this.cities = const {},
     this.types = const {'danger'},
     this.severities = const {'extreme', 'severe'},
-    this.extremeSound = 'siren',
-    this.severeSound = 'radar',
+    this.extremeSound = 'default',
+    this.severeSound = 'default',
     this.moderateSound = 'silent',
   });
 
@@ -61,8 +61,6 @@ class NotificationPreferences {
 
 /// Available alert sounds (key → display label)
 const Map<String, String> availableAlertSounds = {
-  'siren': '🚨  Police Siren',
-  'radar': '📡  Radar Ping',
   'default': '🔔  System Default',
   'silent': '🔇  Silent',
 };
@@ -150,8 +148,8 @@ class NotificationPreferencesNotifier
     final severities =
         (prefs.getStringList('${_prefsPrefix}severities') ?? ['extreme', 'severe'])
             .toSet();
-    final extremeSound = prefs.getString('${_prefsPrefix}sound_extreme') ?? 'siren';
-    final severeSound = prefs.getString('${_prefsPrefix}sound_severe') ?? 'radar';
+    final extremeSound = prefs.getString('${_prefsPrefix}sound_extreme') ?? 'default';
+    final severeSound = prefs.getString('${_prefsPrefix}sound_severe') ?? 'default';
     final moderateSound = prefs.getString('${_prefsPrefix}sound_moderate') ?? 'silent';
 
     state = NotificationPreferences(

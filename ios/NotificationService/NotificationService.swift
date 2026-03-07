@@ -2,7 +2,8 @@
 // BRE4CH - Notification Service Extension
 // Intercepts push notifications to:
 //   1. Set accurate badge count
-//   2. Assign alert sound based on severity keywords (siren / radar)
+//   2. Set interruption level based on severity keywords
+//   3. Use system default sounds (custom sounds removed)
 // =============================================================================
 
 import UserNotifications
@@ -11,7 +12,7 @@ class NotificationService: UNNotificationServiceExtension {
     var contentHandler: ((UNNotificationContent) -> Void)?
     var bestAttemptContent: UNMutableNotificationContent?
 
-    // EXTREME → siren (police siren, looped feeling via critical)
+    // EXTREME keywords → critical interruption level
     private let extremeKeywords = [
         "nuclear", "radiological", "wmd", "chemical weapon",
         "mass casualty", "nato article 5",
@@ -19,7 +20,7 @@ class NotificationService: UNNotificationServiceExtension {
         "صاروخ", "نووي", "سلاح كيميائي", "رأس حربي",
     ]
 
-    // SEVERE → radar ping
+    // SEVERE keywords → time-sensitive interruption level
     private let severeKeywords = [
         "killed", "strike", "attack", "war", "breaking",
         "drone", "shot down", "friendly fire",
@@ -49,33 +50,24 @@ class NotificationService: UNNotificationServiceExtension {
         let isExtreme = extremeKeywords.contains { combined.contains($0) }
         let isSevere = !isExtreme && severeKeywords.contains { combined.contains($0) }
 
-        // ── Set sound ────────────────────────────────────────────
+        // ── Set sound + interruption level ────────────────────────
+        // Always use system default sound. Severity only affects
+        // interruption level (critical > time-sensitive > active).
+        bestAttemptContent.sound = UNNotificationSound.default
+
         if isExtreme {
-            // Try critical sound first (bypasses silent mode / DND)
-            // Falls back to regular named sound if critical entitlement is missing
-            if #available(iOSApplicationExtension 12.0, *) {
-                bestAttemptContent.sound = UNNotificationSound.criticalSoundNamed(
-                    UNNotificationSoundName("siren.wav"),
-                    withAudioVolume: 1.0
-                )
-            } else {
-                bestAttemptContent.sound = UNNotificationSound(
-                    named: UNNotificationSoundName("siren.wav")
-                )
-            }
-            // Mark as critical via interruption level
             if #available(iOSApplicationExtension 15.0, *) {
                 bestAttemptContent.interruptionLevel = .critical
             }
+            // Critical sound at full volume (bypasses silent mode)
+            if #available(iOSApplicationExtension 12.0, *) {
+                bestAttemptContent.sound = UNNotificationSound.defaultCritical
+            }
         } else if isSevere {
-            bestAttemptContent.sound = UNNotificationSound(
-                named: UNNotificationSoundName("radar.wav")
-            )
             if #available(iOSApplicationExtension 15.0, *) {
                 bestAttemptContent.interruptionLevel = .timeSensitive
             }
         } else {
-            bestAttemptContent.sound = UNNotificationSound.default
             if #available(iOSApplicationExtension 15.0, *) {
                 bestAttemptContent.interruptionLevel = .active
             }

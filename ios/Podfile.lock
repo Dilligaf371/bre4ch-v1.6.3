@@ -1,7 +1,4 @@
 PODS:
-  - audioplayers_darwin (0.0.1):
-    - Flutter
-    - FlutterMacOS
   - connectivity_plus (0.0.1):
     - Flutter
   - Firebase/CoreOnly (11.15.0):
@@ -87,7 +84,6 @@ PODS:
     - FlutterMacOS
 
 DEPENDENCIES:
-  - audioplayers_darwin (from `.symlinks/plugins/audioplayers_darwin/darwin`)
   - connectivity_plus (from `.symlinks/plugins/connectivity_plus/ios`)
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
   - firebase_messaging (from `.symlinks/plugins/firebase_messaging/ios`)
@@ -112,8 +108,6 @@ SPEC REPOS:
     - PromisesObjC
 
 EXTERNAL SOURCES:
-  audioplayers_darwin:
-    :path: ".symlinks/plugins/audioplayers_darwin/darwin"
   connectivity_plus:
     :path: ".symlinks/plugins/connectivity_plus/ios"
   firebase_core:
@@ -136,7 +130,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/video_player_avfoundation/darwin"
 
 SPEC CHECKSUMS:
-  audioplayers_darwin: 835ced6edd4c9fc8ebb0a7cc9e294a91d99917d5
   connectivity_plus: cb623214f4e1f6ef8fe7403d580fdad517d2f7dd
   Firebase: d99ac19b909cd2c548339c2241ecd0d1599ab02e
   firebase_core: 995454a784ff288be5689b796deb9e9fa3601818

@@ -115,40 +115,73 @@ final Set<String> _officialGovHandles = _sourceUrls.keys
 
 // ── Content-based GOV source detection ──────────────────────────
 
-/// Check if headline title mentions a GOV entity → return display label.
-/// This ensures events about government announcements are tagged properly
-/// instead of showing the RSS source (Reuters, AP, etc.).
+/// Detect GOV source from headline content → return display label.
+/// Broadened detection: any military/security/diplomatic headline gets
+/// tagged with the appropriate GOV entity for the detected region.
 Map<String, String>? _detectGovSource(String title) {
   final lower = title.toLowerCase();
   final region = _detectTargetRegion(title);
 
-  // MOD: defense / military ministry
+  // Only for recognized country regions
+  if (region == 'Iran Theater') return null;
+
+  // MOD: defense / military / armed forces / intercepts / strikes / weapons
   if (lower.contains('ministry of defense') || lower.contains('ministry of defence') ||
       lower.contains('defense ministry') || lower.contains('defence ministry') ||
-      lower.contains('وزارة الدفاع') || lower.contains('armed forces statement') ||
-      lower.contains('بيان القوات المسلحة')) {
+      lower.contains('وزارة الدفاع') || lower.contains('armed forces') ||
+      lower.contains('القوات المسلحة') || lower.contains('military') ||
+      lower.contains('عسكري') || lower.contains('intercept') ||
+      lower.contains('اعتراض') || lower.contains('missile') ||
+      lower.contains('صاروخ') || lower.contains('air defense') ||
+      lower.contains('air defence') || lower.contains('دفاع جوي') ||
+      lower.contains('navy') || lower.contains('بحرية') ||
+      lower.contains('air force') || lower.contains('سلاح الجو') ||
+      lower.contains('army') || lower.contains('الجيش') ||
+      lower.contains('drone') || lower.contains('طائرة مسيرة') ||
+      lower.contains('strike') || lower.contains('ضربة') ||
+      lower.contains('bomb') || lower.contains('قصف') ||
+      lower.contains('artillery') || lower.contains('shell') ||
+      lower.contains('warhead') || lower.contains('ballistic') ||
+      lower.contains('radar') || lower.contains('shot down') ||
+      lower.contains('anti-aircraft') || lower.contains('مضاد للطائرات') ||
+      lower.contains('war') || lower.contains('حرب') ||
+      lower.contains('kill') || lower.contains('قتل') ||
+      lower.contains('destroyed') || lower.contains('دمر')) {
     return _govLabel('MOD', region);
   }
 
-  // MOI: interior / police / security
+  // NCEMA: emergency / civil defense / shelter / warning (before MOI)
+  if (lower.contains('ncema') || lower.contains('emergency management') ||
+      lower.contains('إدارة الطوارئ') || lower.contains('civil defense') ||
+      lower.contains('civil defence') || lower.contains('الدفاع المدني') ||
+      lower.contains('shelter') || lower.contains('ملجأ') ||
+      lower.contains('sirens') || lower.contains('warning system') ||
+      lower.contains('إنذار')) {
+    return _govLabel('NCEMA', region);
+  }
+
+  // MOI: interior / police / security / border / arrests
   if (lower.contains('ministry of interior') || lower.contains('interior ministry') ||
-      lower.contains('وزارة الداخلية') || lower.contains('police forces') ||
-      lower.contains('security directorate') || lower.contains('الأمن العام')) {
+      lower.contains('وزارة الداخلية') || lower.contains('police') ||
+      lower.contains('شرطة') || lower.contains('security forces') ||
+      lower.contains('قوات الأمن') || lower.contains('border') ||
+      lower.contains('حدود') || lower.contains('arrest') ||
+      lower.contains('اعتقال') || lower.contains('security alert') ||
+      lower.contains('تنبيه أمني') || lower.contains('الأمن العام')) {
     return _govLabel('MOI', region);
   }
 
-  // MOFA: foreign affairs / embassy / consular
+  // MOFA: foreign affairs / embassy / diplomacy / evacuation / travel
   if (lower.contains('foreign affairs') || lower.contains('foreign ministry') ||
-      lower.contains('وزارة الخارجية') || lower.contains('embassy statement') ||
-      lower.contains('consular') || lower.contains('بيان السفارة')) {
+      lower.contains('وزارة الخارجية') || lower.contains('embassy') ||
+      lower.contains('السفارة') || lower.contains('diplomatic') ||
+      lower.contains('دبلوماسي') || lower.contains('consular') ||
+      lower.contains('قنصلي') || lower.contains('evacuat') ||
+      lower.contains('إجلاء') || lower.contains('repatriat') ||
+      lower.contains('travel advisory') || lower.contains('تحذير سفر') ||
+      lower.contains('expat') || lower.contains('nationals abroad') ||
+      lower.contains('رعايا')) {
     return _govLabel('MOFA', region);
-  }
-
-  // NCEMA: emergency management / civil defense
-  if (lower.contains('ncema') || lower.contains('emergency management') ||
-      lower.contains('civil defense') || lower.contains('civil defence') ||
-      lower.contains('إدارة الطوارئ') || lower.contains('الدفاع المدني')) {
-    return _govLabel('NCEMA', region);
   }
 
   return null;
