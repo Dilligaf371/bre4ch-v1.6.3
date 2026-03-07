@@ -124,16 +124,20 @@ const List<String> _severeKeywords = [
   'hezbollah', 'retaliation', 'sunk',
   'evacuation', 'evacuate', 'repatriation',
   'embassy closure', 'leave immediately',
+  'intercepted', 'interception', 'intercept',
+  'air defense', 'air defence', 'iron dome',
+  'sirens', 'siren', 'shelter', 'bunker',
   // Arabic
   'هجوم', 'طائرة مسيرة', 'ضربة', 'قتل',
-  'حرب', 'إعتراض',
+  'حرب', 'إعتراض', 'اعتراض',
   'إجلاء', 'مغادرة فورية',
+  'صافرات إنذار', 'ملجأ',
 ];
 
 const List<String> _moderateKeywords = [
   // English
   'iran', 'military', 'bomb', 'explosion',
-  'airspace closed', 'intercepted', 'escalation',
+  'airspace closed', 'escalation',
   'casualties', 'wounded', 'deployment',
   'travel advisory', 'travel warning', 'do not travel',
   'nationals abroad', 'consular assistance',
@@ -325,61 +329,81 @@ class EmergencyAlertsNotifier extends StateNotifier<EmergencyAlertsState> {
 
   Future<void> _init() async {
     _readHeadlines = await _loadReadAlerts();
-    // Prevent stale read-cache from blocking ALL alerts.
-    // If the cache has grown too large, clear it so fresh headlines
-    // can generate alerts again on app restart.
-    if (_readHeadlines.length > 100) {
+    print('[ALERTS] ════════════════════════════════════════');
+    print('[ALERTS] INIT: ${_readHeadlines.length} read headlines in cache');
+    // ALWAYS clear on startup — ensure fresh alerts every launch.
+    if (_readHeadlines.isNotEmpty) {
+      print('[ALERTS] CLEARING read-headlines cache (was ${_readHeadlines.length})');
       _readHeadlines.clear();
       _saveReadAlerts(_readHeadlines);
     }
 
     final ws = BreachSocketService.instance;
+    print('[ALERTS] WebSocket connected: ${ws.connected}');
 
-    // ── WS headlines → instant alert detection ──────────────────
-    _wsHeadlinesSub = ws.channel(WsMessageType.headlines).listen((data) {
-      if (!mounted) return;
-      _processHeadlines(data as List<dynamic>);
-    });
+    // ── START HTTP POLLING FIRST (most critical path) ───────────
+    print('[ALERTS] Starting HTTP polling immediately...');
+    _startHttpPolling();
 
-    // ── WS socmint → official GOV alert escalation (Instagram + X) ──
-    _wsSocmintSub = ws.channel(WsMessageType.socmint).listen((data) {
-      if (!mounted) return;
-      try {
-        final m = data as Map<String, dynamic>;
-        final platform = m['platform'] as String? ?? '';
-        if (platform == 'instagram' && m['isOfficialGov'] == true) {
-          _processInstagramAlert(m);
-        } else if (platform == 'x') {
-          _processXAlert(m);
+    // ── WS + FCM listeners (wrapped in try/catch so they never kill init) ──
+    try {
+      _wsHeadlinesSub = ws.channel(WsMessageType.headlines).listen((data) {
+        if (!mounted) return;
+        _processHeadlines(data as List<dynamic>);
+      });
+      print('[ALERTS] WS headlines listener OK');
+    } catch (e) {
+      print('[ALERTS] WS headlines listener FAILED: $e');
+    }
+
+    try {
+      _wsSocmintSub = ws.channel(WsMessageType.socmint).listen((data) {
+        if (!mounted) return;
+        try {
+          final m = data as Map<String, dynamic>;
+          final platform = m['platform'] as String? ?? '';
+          if (platform == 'instagram' && m['isOfficialGov'] == true) {
+            _processInstagramAlert(m);
+          } else if (platform == 'x') {
+            _processXAlert(m);
+          }
+        } catch (_) {}
+      });
+      print('[ALERTS] WS socmint listener OK');
+    } catch (e) {
+      print('[ALERTS] WS socmint listener FAILED: $e');
+    }
+
+    try {
+      final push = PushNotificationService.instance;
+      _fcmForegroundSub = push.onForegroundMessage.listen((message) {
+        if (!mounted) return;
+        _processPushNotification(message);
+      });
+      _fcmTapSub = push.onNotificationTap.listen((message) {
+        if (!mounted) return;
+        _processPushNotification(message);
+      });
+      final initial = await push.getInitialMessage();
+      if (initial != null) _processPushNotification(initial);
+      print('[ALERTS] FCM listeners OK');
+    } catch (e) {
+      print('[ALERTS] FCM listeners FAILED: $e');
+    }
+
+    try {
+      _wsConnSub = ws.connectionStream.listen((connected) {
+        if (connected) {
+          _pollTimer?.cancel();
+          _pollTimer = null;
+        } else {
+          _startHttpPolling();
         }
-      } catch (_) {}
-    });
-
-    // ── FCM push notifications → create alerts + play sounds ────
-    final push = PushNotificationService.instance;
-    _fcmForegroundSub = push.onForegroundMessage.listen((message) {
-      if (!mounted) return;
-      _processPushNotification(message);
-    });
-    _fcmTapSub = push.onNotificationTap.listen((message) {
-      if (!mounted) return;
-      _processPushNotification(message);
-    });
-    // Handle cold-start notification
-    final initial = await push.getInitialMessage();
-    if (initial != null) _processPushNotification(initial);
-
-    // ── Connection fallback ─────────────────────────────────────
-    _wsConnSub = ws.connectionStream.listen((connected) {
-      if (connected) {
-        _pollTimer?.cancel();
-        _pollTimer = null;
-      } else {
-        _startHttpPolling();
-      }
-    });
-
-    if (!ws.connected) _startHttpPolling();
+      });
+      print('[ALERTS] WS connection listener OK');
+    } catch (e) {
+      print('[ALERTS] WS connection listener FAILED: $e');
+    }
 
     // Auto-dismiss expired alerts every 1s
     _expireTimer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -452,13 +476,16 @@ class EmergencyAlertsNotifier extends StateNotifier<EmergencyAlertsState> {
   void _processHeadlines(List<dynamic> headlines) {
     final newAlerts = <EmergencyAlert>[];
     final now = DateTime.now().millisecondsSinceEpoch;
+    print('[ALERTS] ── Processing ${headlines.length} headlines ──');
+
+    int skippedEmpty = 0, skippedSeen = 0, skippedRead = 0, skippedOld = 0, skippedNoLevel = 0, skippedPrefs = 0;
 
     for (final h in headlines) {
       final map = h as Map<String, dynamic>;
       final title = map['title'] as String? ?? '';
-      if (title.isEmpty) continue;
-      if (_seen.contains(title)) continue;
-      if (_readHeadlines.contains(title.toUpperCase())) continue;
+      if (title.isEmpty) { skippedEmpty++; continue; }
+      if (_seen.contains(title)) { skippedSeen++; continue; }
+      if (_readHeadlines.contains(title.toUpperCase())) { skippedRead++; continue; }
 
       final pubDate = map['pubDate'] as String? ?? '';
       int pubTime = 0;
@@ -466,10 +493,10 @@ class EmergencyAlertsNotifier extends StateNotifier<EmergencyAlertsState> {
         final parsed = DateTime.tryParse(pubDate);
         if (parsed != null) pubTime = parsed.millisecondsSinceEpoch;
       }
-      if (pubTime > 0 && !_isRecent(pubTime)) continue;
+      if (pubTime > 0 && !_isRecent(pubTime)) { skippedOld++; continue; }
 
       final level = _detectAlertLevel(title);
-      if (level == null) continue;
+      if (level == null) { skippedNoLevel++; continue; }
 
       _seen.add(title);
       final region = _detectRegion(title);
@@ -477,7 +504,7 @@ class EmergencyAlertsNotifier extends StateNotifier<EmergencyAlertsState> {
       final timestamp = pubTime > 0 ? pubTime : now;
 
       // Preference filter: country + severity
-      if (!_shouldNotify(region, level)) continue;
+      if (!_shouldNotify(region, level)) { skippedPrefs++; continue; }
 
       final isTest = _isTestAlert(title);
       final rawHeadline = title.toUpperCase();
@@ -499,6 +526,9 @@ class EmergencyAlertsNotifier extends StateNotifier<EmergencyAlertsState> {
       ));
     }
 
+    print('[ALERTS] ── Results: ${newAlerts.length} alerts generated ──');
+    print('[ALERTS]   skipped: empty=$skippedEmpty seen=$skippedSeen read=$skippedRead old=$skippedOld noKeyword=$skippedNoLevel prefs=$skippedPrefs');
+
     if (newAlerts.isNotEmpty) {
       const order = {AlertLevel.extreme: 0, AlertLevel.severe: 1, AlertLevel.moderate: 2};
       newAlerts.sort((a, b) => (order[a.level] ?? 2).compareTo(order[b.level] ?? 2));
@@ -506,6 +536,9 @@ class EmergencyAlertsNotifier extends StateNotifier<EmergencyAlertsState> {
       _emitState();
       // Play sound for highest-priority new alert
       AlertSoundService.instance.playForLevel(newAlerts.first.level);
+      for (final a in newAlerts) {
+        debugPrint('[ALERTS] ★ ${a.level.name}: ${a.headline.substring(0, a.headline.length > 80 ? 80 : a.headline.length)}');
+      }
     }
   }
 
@@ -640,8 +673,11 @@ class EmergencyAlertsNotifier extends StateNotifier<EmergencyAlertsState> {
     try {
       final headlines = await HeadlinesService.instance.fetchHeadlines();
       if (!mounted) return;
+      print('[ALERTS] HTTP poll fetched ${headlines.length} headlines');
       _processHeadlines(headlines.map((h) => h as dynamic).toList());
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[ALERTS] HTTP poll error: $e');
+    }
   }
 
   void _autoDismissExpired() {

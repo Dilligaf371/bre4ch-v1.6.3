@@ -7,6 +7,7 @@ import 'services/api_service.dart';
 import 'services/cached_tile_provider.dart';
 import 'services/push_notification_service.dart';
 import 'services/breach_socket_service.dart';
+import 'providers/emergency_alerts_provider.dart';
 
 /// Native badge clearing channel
 const _badgeChannel = MethodChannel('com.qyber.breach/badge');
@@ -47,7 +48,22 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  runApp(const ProviderScope(child: BadgeClearer(child: BreachApp())));
+  runApp(ProviderScope(child: _EagerAlerts(child: const BadgeClearer(child: BreachApp()))));
+}
+
+/// Forces the emergency alerts provider to start IMMEDIATELY on app launch.
+/// Without this, the provider is lazy and only starts when a widget watches it.
+class _EagerAlerts extends ConsumerWidget {
+  final Widget child;
+  const _EagerAlerts({required this.child});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // This watch() forces the provider to initialize on first frame.
+    final alertState = ref.watch(emergencyAlertsProvider);
+    print('[ALERTS] _EagerAlerts: ${alertState.activeCount} active, ${alertState.alerts.length} total');
+    return child;
+  }
 }
 
 /// Watches app lifecycle and clears badge on resume / startup
