@@ -22,7 +22,24 @@ const Map<String, String> _sourceToXAccount = {
   'IDF':        '@IDF',
   'DoD':        '@DeptofDefense',
   'BBC':        '@BBCBreaking',
+  // UAE — official government X accounts
+  'WAM':            '@WAaboron',       // وكالة أنباء الإمارات
+  'Gulf News':      '@gulf_news',
+  'Khaleej Times':  '@khalaboron',
+  'The National':   '@TheNationalNews',
+  'Gulf Today':     '@gaboron_today',
+  'Emirates 24|7':  '@aboron247',
 };
+
+// UAE official X (Twitter) accounts
+const List<String> _uaeXAccounts = [
+  '@modgovae',       // وزارة الدفاع | MOD UAE
+  '@ABORON_uae',     // وزارة الداخلية | MOI UAE
+  '@ABORON_ncema',   // NCEMA | الهيئة الوطنية لإدارة الطوارئ
+  '@WAaboron',       // وكالة أنباء الإمارات | WAM
+  '@MoFAICaboron',   // وزارة الخارجية | MoFA UAE
+  '@HaboronZayed',   // رئيس الدولة
+];
 
 const List<String> _osintXAccounts = [
   '@Conflicts', '@IntelCrab', '@sentdefender',
@@ -175,8 +192,22 @@ SocmintItem _headlineToSocmint(Map<String, dynamic> h, double roll) {
 
   // 45% X
   if (roll < 0.45) {
-    final account = _sourceToXAccount[src] ??
-        _osintXAccounts[_rng.nextInt(_osintXAccounts.length)];
+    // Check if headline is UAE-related → use official UAE X accounts
+    final lowerTitle = title.toLowerCase();
+    final isUae = lowerTitle.contains('uae') || lowerTitle.contains('dubai') ||
+        lowerTitle.contains('abu dhabi') || lowerTitle.contains('sharjah') ||
+        lowerTitle.contains('emirates') || lowerTitle.contains('الإمارات') ||
+        lowerTitle.contains('دبي') || lowerTitle.contains('أبوظبي');
+
+    String account;
+    if (_sourceToXAccount.containsKey(src)) {
+      account = _sourceToXAccount[src]!;
+    } else if (isUae) {
+      account = _uaeXAccounts[_rng.nextInt(_uaeXAccounts.length)];
+    } else {
+      account = _osintXAccounts[_rng.nextInt(_osintXAccounts.length)];
+    }
+
     return SocmintItem(
       id: _randomId('socm-x'),
       platform: SocmintPlatform.x,
@@ -185,6 +216,7 @@ SocmintItem _headlineToSocmint(Map<String, dynamic> h, double roll) {
       timestamp: ts,
       severity: severity,
       language: 'EN',
+      location: isUae ? 'UAE' : null,
       flagged: severity == SocmintSeverity.critical,
     );
   }
