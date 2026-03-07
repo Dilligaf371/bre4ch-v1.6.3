@@ -251,9 +251,12 @@ class _CrisisFilterScreenState extends ConsumerState<CrisisFilterScreen>
   }
 
   Widget _buildEventCard(AttackEvent event) {
+    final hasUrl = event.sourceUrl != null && event.sourceUrl!.isNotEmpty;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: PalantirCard(
+      child: GestureDetector(
+        onTap: hasUrl ? () => _openUrl(event.sourceUrl!) : null,
+        child: PalantirCard(
         borderColor: event.status == EventStatus.ongoing
             ? Palantir.warning.withValues(alpha: 0.5)
             : event.status == EventStatus.impact
@@ -361,6 +364,7 @@ class _CrisisFilterScreenState extends ConsumerState<CrisisFilterScreen>
             ),
           ],
         ),
+      ),
       ),
     );
   }
@@ -572,9 +576,12 @@ class _CrisisFilterScreenState extends ConsumerState<CrisisFilterScreen>
               itemCount: filtered.length,
               itemBuilder: (context, index) {
                 final item = filtered[index];
+                final hasUrl = item.url != null && item.url!.isNotEmpty;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 8),
-                  child: PalantirCard(
+                  child: GestureDetector(
+                    onTap: hasUrl ? () => _openUrl(item.url!) : null,
+                    child: PalantirCard(
                     padding: const EdgeInsets.all(10),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -627,10 +634,25 @@ class _CrisisFilterScreenState extends ConsumerState<CrisisFilterScreen>
                                 color: Palantir.textMuted,
                               ),
                             ),
+                            if (hasUrl) ...[
+                              const Spacer(),
+                              Icon(Icons.open_in_new, size: 10, color: Palantir.info),
+                              const SizedBox(width: 2),
+                              Text(
+                                'SOURCE',
+                                style: AppTextStyles.mono(
+                                  size: 10,
+                                  weight: FontWeight.w600,
+                                  color: Palantir.info,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ],
                     ),
+                  ),
                   ),
                 );
               },
