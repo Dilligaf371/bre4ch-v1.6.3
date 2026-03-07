@@ -1,6 +1,6 @@
 // ── SOCMINT Item Model ───────────────────────────────────────────
 
-enum SocmintPlatform { telegram, snapchat, x }
+enum SocmintPlatform { telegram, snapchat, x, instagram }
 
 enum SocmintSeverity { critical, high, medium, low }
 
@@ -14,6 +14,9 @@ class SocmintItem {
   final String language;
   final String? location;
   final bool flagged;
+  final String? imageUrl;
+  final bool isOfficialGov;
+  final String? country;
 
   const SocmintItem({
     required this.id,
@@ -25,6 +28,9 @@ class SocmintItem {
     required this.language,
     this.location,
     required this.flagged,
+    this.imageUrl,
+    this.isOfficialGov = false,
+    this.country,
   });
 
   SocmintItem copyWith({
@@ -37,6 +43,9 @@ class SocmintItem {
     String? language,
     String? location,
     bool? flagged,
+    String? imageUrl,
+    bool? isOfficialGov,
+    String? country,
   }) {
     return SocmintItem(
       id: id ?? this.id,
@@ -48,6 +57,9 @@ class SocmintItem {
       language: language ?? this.language,
       location: location ?? this.location,
       flagged: flagged ?? this.flagged,
+      imageUrl: imageUrl ?? this.imageUrl,
+      isOfficialGov: isOfficialGov ?? this.isOfficialGov,
+      country: country ?? this.country,
     );
   }
 }

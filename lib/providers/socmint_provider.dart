@@ -2,11 +2,13 @@
 // WebSocket-first with HTTP polling fallback.
 // WS: subscribes to 'socmint' + 'headlines' channels.
 // HTTP: polls HeadlinesService when WS is disconnected.
+// v1.6.3: Added Instagram as 4th platform with GCC/MAE/Coalition gov accounts.
 
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/socmint_item.dart';
+import '../models/emergency_alert.dart';
 import '../services/headlines_service.dart';
 import '../services/breach_socket_service.dart';
 
@@ -29,18 +31,120 @@ const List<String> _osintXAccounts = [
   '@RALee85',
 ];
 
-// ── Severity detection ──────────────────────────────────────────
+// ── Instagram GCC / MAE / Coalition accounts ────────────────────
+
+class _IgAccount {
+  final String handle;
+  final String displayName;
+  final String country;
+  final AlertAuthority authority;
+  const _IgAccount(this.handle, this.displayName, this.country, this.authority);
+}
+
+const List<_IgAccount> _instagramGovAccounts = [
+  // GCC — MOI / MOD / NCEMA
+  _IgAccount('@ncaboron',        'NCEMA UAE',       'UAE',      AlertAuthority.ncema),
+  _IgAccount('@moiuae',          'MOI UAE',         'UAE',      AlertAuthority.moi),
+  _IgAccount('@modgovae',        'MOD UAE',         'UAE',      AlertAuthority.mod),
+  _IgAccount('@modaboron_sa',    'MOD KSA',         'KSA',      AlertAuthority.coalition),
+  _IgAccount('@moaboron_sa',     'MOI KSA',         'KSA',      AlertAuthority.coalition),
+  _IgAccount('@moaboron_qa',     'MOI Qatar',       'QATAR',    AlertAuthority.ncema),
+  _IgAccount('@moaboron_bh',     'MOI Bahrain',     'BAHRAIN',  AlertAuthority.ncema),
+  _IgAccount('@moaboron_kw',     'MOI Kuwait',      'KUWAIT',   AlertAuthority.ncema),
+  _IgAccount('@modkuwait',       'MOD Kuwait',      'KUWAIT',   AlertAuthority.ncema),
+  _IgAccount('@moaboron_om',     'MOD Oman',        'OMAN',     AlertAuthority.coalition),
+  // GCC — MFA (Affaires Étrangères — évacuation expats)
+  _IgAccount('@maboron_uae',     'MoFA UAE',        'UAE',      AlertAuthority.ncema),
+  _IgAccount('@kaboron_sa',      'MoFA KSA',        'KSA',      AlertAuthority.coalition),
+  _IgAccount('@moaboron_qa_mfa', 'MoFA Qatar',      'QATAR',    AlertAuthority.ncema),
+  _IgAccount('@maboron_bh',      'MoFA Bahrain',    'BAHRAIN',  AlertAuthority.ncema),
+  _IgAccount('@maboron_kw',      'MoFA Kuwait',     'KUWAIT',   AlertAuthority.ncema),
+  _IgAccount('@maboron_om',      'MoFA Oman',       'OMAN',     AlertAuthority.coalition),
+  // Coalition — MFA / State Dept / Foreign Offices
+  _IgAccount('@statedept',       'US State Dept',   'USA',      AlertAuthority.centcom),
+  _IgAccount('@foreignoffice',   'UK FCDO',         'UK',       AlertAuthority.coalition),
+  _IgAccount('@francediplo',     'France MEAE',     'FRANCE',   AlertAuthority.coalition),
+  _IgAccount('@auswaertiges_amt','Germany AA',      'GERMANY',  AlertAuthority.coalition),
+  _IgAccount('@globalaffairscan','Canada GAC',      'CANADA',   AlertAuthority.coalition),
+  _IgAccount('@dfaboron_au',     'Australia DFAT',  'AUSTRALIA', AlertAuthority.coalition),
+  _IgAccount('@farnesina',       'Italy Farnesina', 'ITALY',    AlertAuthority.coalition),
+  _IgAccount('@dutchmfa',        'Netherlands MFA', 'NL',       AlertAuthority.coalition),
+];
+
+// Build country → accounts index
+final Map<String, List<_IgAccount>> _countryAccounts = () {
+  final idx = <String, List<_IgAccount>>{};
+  for (final a in _instagramGovAccounts) {
+    idx.putIfAbsent(a.country, () => []).add(a);
+  }
+  return idx;
+}();
+
+/// Pick an Instagram account based on detected region in headline.
+_IgAccount _pickAccountForRegion(String title, Random rng) {
+  final lower = title.toLowerCase();
+  String? country;
+
+  if (lower.contains('uae') || lower.contains('dubai') || lower.contains('abu dhabi')) {
+    country = 'UAE';
+  } else if (lower.contains('saudi') || lower.contains('riyadh') || lower.contains('ksa')) {
+    country = 'KSA';
+  } else if (lower.contains('qatar') || lower.contains('doha')) {
+    country = 'QATAR';
+  } else if (lower.contains('bahrain') || lower.contains('manama')) {
+    country = 'BAHRAIN';
+  } else if (lower.contains('kuwait')) {
+    country = 'KUWAIT';
+  } else if (lower.contains('oman') || lower.contains('muscat')) {
+    country = 'OMAN';
+  } else if (lower.contains('evacuat') || lower.contains('repatriat') || lower.contains('expat') ||
+             lower.contains('embassy closure') || lower.contains('travel advisory') ||
+             lower.contains('nationals abroad') || lower.contains('consular') ||
+             lower.contains('إجلاء') || lower.contains('رعايا') || lower.contains('تحذير سفر')) {
+    // Evacuation / MFA — pick a coalition or GCC MFA account
+    final mfaAccounts = _instagramGovAccounts.where((a) =>
+      a.displayName.contains('MoFA') || a.displayName.contains('State Dept') ||
+      a.displayName.contains('FCDO') || a.displayName.contains('MEAE') ||
+      a.displayName.contains('GAC') || a.displayName.contains('DFAT') ||
+      a.displayName.contains('Farnesina') || a.displayName.contains('MFA') ||
+      a.displayName.contains('AA')).toList();
+    return mfaAccounts[rng.nextInt(mfaAccounts.length)];
+  }
+
+  if (country != null && _countryAccounts.containsKey(country)) {
+    final accounts = _countryAccounts[country]!;
+    return accounts[rng.nextInt(accounts.length)];
+  }
+
+  // Default: NCEMA UAE
+  return _instagramGovAccounts[0];
+}
+
+// ── Severity detection (EN + AR) ────────────────────────────────
 
 SocmintSeverity _detectSeverity(String title) {
   final lower = title.toLowerCase();
+  // Critical
   if (lower.contains('kill') || lower.contains('strike') || lower.contains('attack') ||
-      lower.contains('war') || lower.contains('dead') || lower.contains('breaking')) {
+      lower.contains('war') || lower.contains('dead') || lower.contains('breaking') ||
+      lower.contains('قتل') || lower.contains('هجوم') || lower.contains('ضربة') ||
+      lower.contains('حرب') || lower.contains('evacuation') || lower.contains('evacuate') ||
+      lower.contains('إجلاء')) {
     return SocmintSeverity.critical;
-  } else if (lower.contains('iran') || lower.contains('military') ||
-      lower.contains('missile') || lower.contains('bomb') || lower.contains('drone')) {
+  }
+  // High
+  if (lower.contains('iran') || lower.contains('military') ||
+      lower.contains('missile') || lower.contains('bomb') || lower.contains('drone') ||
+      lower.contains('صاروخ') || lower.contains('طائرة مسيرة') || lower.contains('عسكري') ||
+      lower.contains('repatriation') || lower.contains('travel advisory') ||
+      lower.contains('تحذير سفر') || lower.contains('رعايا')) {
     return SocmintSeverity.high;
-  } else if (lower.contains('middle east') || lower.contains('israel') ||
-      lower.contains('gaza') || lower.contains('hezbollah') || lower.contains('gulf')) {
+  }
+  // Medium
+  if (lower.contains('middle east') || lower.contains('israel') ||
+      lower.contains('gaza') || lower.contains('hezbollah') || lower.contains('gulf') ||
+      lower.contains('إيران') || lower.contains('حزب الله') || lower.contains('expat') ||
+      lower.contains('غزة')) {
     return SocmintSeverity.medium;
   }
   return SocmintSeverity.low;
@@ -69,7 +173,8 @@ SocmintItem _headlineToSocmint(Map<String, dynamic> h, double roll) {
     if (parsed != null) ts = parsed.millisecondsSinceEpoch;
   }
 
-  if (roll < 0.6) {
+  // 45% X
+  if (roll < 0.45) {
     final account = _sourceToXAccount[src] ??
         _osintXAccounts[_rng.nextInt(_osintXAccounts.length)];
     return SocmintItem(
@@ -82,7 +187,10 @@ SocmintItem _headlineToSocmint(Map<String, dynamic> h, double roll) {
       language: 'EN',
       flagged: severity == SocmintSeverity.critical,
     );
-  } else if (roll < 0.9) {
+  }
+
+  // 25% Telegram (0.45 → 0.70)
+  if (roll < 0.70) {
     String channel;
     if (src == 'CENTCOM') channel = 't.me/CentcomOfficial';
     else if (src == 'Al Jazeera') channel = 't.me/AJArabic';
@@ -100,37 +208,57 @@ SocmintItem _headlineToSocmint(Map<String, dynamic> h, double roll) {
       language: 'EN',
       flagged: severity == SocmintSeverity.critical,
     );
-  } else {
-    String location = 'Middle East';
-    final lower = title.toLowerCase();
-    if (lower.contains('dubai') || lower.contains('uae')) location = 'Dubai, UAE';
-    else if (lower.contains('tehran')) location = 'Tehran, Iran';
-    else if (lower.contains('israel') || lower.contains('tel aviv')) location = 'Tel Aviv, Israel';
-    else if (lower.contains('kuwait')) location = 'Kuwait City';
-    else if (lower.contains('bahrain')) location = 'Manama, Bahrain';
-    else if (lower.contains('doha') || lower.contains('qatar')) location = 'Doha, Qatar';
-    else if (lower.contains('beirut') || lower.contains('lebanon')) location = 'Beirut, Lebanon';
+  }
 
+  // 20% Instagram (0.70 → 0.90)
+  if (roll < 0.90) {
+    final account = _pickAccountForRegion(title, _rng);
     return SocmintItem(
-      id: _randomId('socm-snap'),
-      platform: SocmintPlatform.snapchat,
-      source: 'Snap Map $location',
-      content: 'Geolocated $location: $title ($src)',
+      id: _randomId('socm-ig'),
+      platform: SocmintPlatform.instagram,
+      source: account.handle,
+      content: '${account.displayName}: $title',
       timestamp: ts,
       severity: severity,
       language: 'EN',
-      location: location,
+      location: account.country,
       flagged: severity == SocmintSeverity.critical,
+      isOfficialGov: true,
+      country: account.country,
     );
   }
+
+  // 10% Snapchat
+  String location = 'Middle East';
+  final lower = title.toLowerCase();
+  if (lower.contains('dubai') || lower.contains('uae')) location = 'Dubai, UAE';
+  else if (lower.contains('tehran')) location = 'Tehran, Iran';
+  else if (lower.contains('israel') || lower.contains('tel aviv')) location = 'Tel Aviv, Israel';
+  else if (lower.contains('kuwait')) location = 'Kuwait City';
+  else if (lower.contains('bahrain')) location = 'Manama, Bahrain';
+  else if (lower.contains('doha') || lower.contains('qatar')) location = 'Doha, Qatar';
+  else if (lower.contains('beirut') || lower.contains('lebanon')) location = 'Beirut, Lebanon';
+
+  return SocmintItem(
+    id: _randomId('socm-snap'),
+    platform: SocmintPlatform.snapchat,
+    source: 'Snap Map $location',
+    content: 'Geolocated $location: $title ($src)',
+    timestamp: ts,
+    severity: severity,
+    language: 'EN',
+    location: location,
+    flagged: severity == SocmintSeverity.critical,
+  );
 }
 
 SocmintPlatform _parsePlatform(String name) {
   switch (name) {
-    case 'telegram': return SocmintPlatform.telegram;
-    case 'snapchat': return SocmintPlatform.snapchat;
-    case 'x':        return SocmintPlatform.x;
-    default:         return SocmintPlatform.x;
+    case 'telegram':  return SocmintPlatform.telegram;
+    case 'snapchat':  return SocmintPlatform.snapchat;
+    case 'x':         return SocmintPlatform.x;
+    case 'instagram': return SocmintPlatform.instagram;
+    default:          return SocmintPlatform.x;
   }
 }
 
@@ -154,6 +282,9 @@ SocmintItem _wsToSocmint(Map<String, dynamic> m) {
     language: m['language'] as String? ?? 'EN',
     location: m['location'] as String?,
     flagged: m['flagged'] as bool? ?? false,
+    imageUrl: m['imageUrl'] as String?,
+    isOfficialGov: m['isOfficialGov'] as bool? ?? false,
+    country: m['country'] as String?,
   );
 }
 

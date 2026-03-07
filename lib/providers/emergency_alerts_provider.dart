@@ -1,6 +1,7 @@
 // ── Emergency Alerts Provider ────────────────────────────────────
-// WebSocket-first: subscribes to 'headlines' channel for instant alert detection.
+// WebSocket-first: subscribes to 'headlines' + 'socmint' channels.
 // Falls back to HTTP polling when WS is disconnected.
+// v1.6.3: Arabic keywords, Instagram alert escalation with authority boost.
 
 import 'dart:async';
 import 'dart:math';
@@ -9,28 +10,46 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/emergency_alert.dart';
 import '../services/headlines_service.dart';
 import '../services/breach_socket_service.dart';
+import '../services/alert_sound_service.dart';
 import '../config/api.dart';
 
-// ── Keyword lists ────────────────────────────────────────────────
+// ── Keyword lists (EN + AR) ─────────────────────────────────────
 
 const List<String> _extremeKeywords = [
+  // English
   'nuclear', 'radiological', 'wmd', 'chemical weapon',
   'khamenei killed', 'leader killed', 'capital struck',
   'strait of hormuz closed', 'temple mount',
   'mass casualty', 'nato article 5',
+  // Arabic
+  'نووي', 'سلاح كيميائي', 'ضحايا جماعية',
 ];
 
 const List<String> _severeKeywords = [
+  // English
   'killed', 'strike', 'attack', 'war', 'breaking',
   'missile', 'drone', 'shot down', 'friendly fire',
   'airport shut', 'airport hit', 'warhead',
   'hezbollah', 'retaliation', 'sunk',
+  'evacuation', 'evacuate', 'repatriation',
+  'embassy closure', 'leave immediately',
+  // Arabic
+  'صاروخ', 'هجوم', 'طائرة مسيرة', 'ضربة', 'قتل',
+  'حرب', 'رأس حربي', 'إعتراض',
+  'إجلاء', 'مغادرة فورية',
 ];
 
 const List<String> _moderateKeywords = [
+  // English
   'iran', 'military', 'bomb', 'explosion',
   'airspace closed', 'intercepted', 'escalation',
   'casualties', 'wounded', 'deployment',
+  'travel advisory', 'travel warning', 'do not travel',
+  'nationals abroad', 'consular assistance',
+  'departure flight', 'expats',
+  // Arabic
+  'عسكري', 'انفجار', 'مجال جوي مغلق', 'تصعيد', 'نشر',
+  'تحذير سفر', 'رعايا', 'سفارة',
 ];
 
 // ── Alert duration ───────────────────────────────────────────────
@@ -77,6 +96,16 @@ AlertAuthority _detectAuthority(String region, String source) {
   if (source.contains('CENTCOM') || source.contains('DoD')) return AlertAuthority.centcom;
   if (source.contains('IDF')) return AlertAuthority.idf;
   if (region == 'KUWAIT' || region == 'BAHRAIN' || region == 'QATAR') return AlertAuthority.ncema;
+  return AlertAuthority.coalition;
+}
+
+/// Detect authority from an Instagram handle.
+AlertAuthority _detectInstagramAuthority(String handle) {
+  if (handle.contains('ncaboron') || handle.contains('ncema')) return AlertAuthority.ncema;
+  if (handle.contains('moiuae') || handle.contains('moaboron_sa') || handle.contains('moaboron_bh') ||
+      handle.contains('moaboron_kw') || handle.contains('moaboron_qa')) return AlertAuthority.moi;
+  if (handle.contains('modgovae') || handle.contains('modaboron') || handle.contains('modkuwait')) return AlertAuthority.mod;
+  if (handle.contains('statedept')) return AlertAuthority.centcom;
   return AlertAuthority.coalition;
 }
 
@@ -142,6 +171,7 @@ class EmergencyAlertsNotifier extends StateNotifier<EmergencyAlertsState> {
   List<EmergencyAlert> _alerts = [];
 
   StreamSubscription? _wsHeadlinesSub;
+  StreamSubscription? _wsSocmintSub;
   StreamSubscription? _wsConnSub;
 
   Future<void> _init() async {
@@ -153,6 +183,17 @@ class EmergencyAlertsNotifier extends StateNotifier<EmergencyAlertsState> {
     _wsHeadlinesSub = ws.channel(WsMessageType.headlines).listen((data) {
       if (!mounted) return;
       _processHeadlines(data as List<dynamic>);
+    });
+
+    // ── WS socmint → Instagram official GOV alert escalation ────
+    _wsSocmintSub = ws.channel(WsMessageType.socmint).listen((data) {
+      if (!mounted) return;
+      try {
+        final m = data as Map<String, dynamic>;
+        if (m['platform'] == 'instagram' && m['isOfficialGov'] == true) {
+          _processInstagramAlert(m);
+        }
+      } catch (_) {}
     });
 
     // ── Connection fallback ─────────────────────────────────────
@@ -227,7 +268,56 @@ class EmergencyAlertsNotifier extends StateNotifier<EmergencyAlertsState> {
       newAlerts.sort((a, b) => (order[a.level] ?? 2).compareTo(order[b.level] ?? 2));
       _alerts = [...newAlerts.take(5), ..._alerts].take(30).toList();
       _emitState();
+      // Play sound for highest-priority new alert
+      AlertSoundService.instance.playForLevel(newAlerts.first.level);
     }
+  }
+
+  /// Process Instagram posts from official government accounts.
+  /// Authority boost: moderate→severe, severe→extreme.
+  void _processInstagramAlert(Map<String, dynamic> m) {
+    final content = m['content'] as String? ?? '';
+    if (content.isEmpty) return;
+    if (_seen.contains(content)) return;
+
+    var level = _detectAlertLevel(content);
+    if (level == null) return;
+
+    // Authority boost: official GCC Instagram → escalate one level
+    if (level == AlertLevel.moderate) {
+      level = AlertLevel.severe;
+    } else if (level == AlertLevel.severe) {
+      level = AlertLevel.extreme;
+    }
+
+    _seen.add(content);
+    final region = _detectRegion(content);
+    final source = m['source'] as String? ?? '';
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final timestamp = m['timestamp'] as int? ?? now;
+
+    final headline = content.length > 120
+        ? content.substring(0, 120).toUpperCase()
+        : content.toUpperCase();
+
+    final alert = EmergencyAlert(
+      id: _randomId('ig-ea'),
+      level: level,
+      headline: headline,
+      body: content,
+      source: 'Instagram $source [OFFICIAL]',
+      sourceUrl: 'https://instagram.com/${source.replaceAll('@', '')}',
+      authority: _detectInstagramAuthority(source),
+      timestamp: timestamp,
+      region: region,
+      dismissed: false,
+      readAt: null,
+      expiresAt: now + (_alertDuration[level] ?? 60000),
+    );
+
+    _alerts = [alert, ..._alerts].take(30).toList();
+    _emitState();
+    AlertSoundService.instance.playForLevel(level);
   }
 
   Future<void> _checkLiveHeadlines() async {
@@ -290,6 +380,7 @@ class EmergencyAlertsNotifier extends StateNotifier<EmergencyAlertsState> {
     _pollTimer?.cancel();
     _expireTimer?.cancel();
     _wsHeadlinesSub?.cancel();
+    _wsSocmintSub?.cancel();
     _wsConnSub?.cancel();
     super.dispose();
   }

@@ -154,6 +154,8 @@ class _DeltaSScreenState extends ConsumerState<DeltaSScreen> {
         items.where((i) => i.platform == SocmintPlatform.x).length;
     final snapCount =
         items.where((i) => i.platform == SocmintPlatform.snapchat).length;
+    final igCount =
+        items.where((i) => i.platform == SocmintPlatform.instagram).length;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -162,6 +164,8 @@ class _DeltaSScreenState extends ConsumerState<DeltaSScreen> {
           _platformStat('TG', tgCount, Palantir.info),
           const SizedBox(width: 12),
           _platformStat('X', xCount, Palantir.text),
+          const SizedBox(width: 12),
+          _platformStat('IG', igCount, Palantir.pink),
           const SizedBox(width: 12),
           _platformStat('SNAP', snapCount, Palantir.warning),
           const Spacer(),
@@ -240,6 +244,21 @@ class _DeltaSScreenState extends ConsumerState<DeltaSScreen> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                if (item.isOfficialGov) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                    decoration: BoxDecoration(
+                      color: Palantir.success.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(3),
+                      border: Border.all(color: Palantir.success.withValues(alpha: 0.4), width: 0.5),
+                    ),
+                    child: Text(
+                      'GOV',
+                      style: AppTextStyles.mono(size: 8, weight: FontWeight.w800, color: Palantir.success, letterSpacing: 0.5),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                ],
                 if (item.flagged) ...[
                   Icon(Icons.flag, size: 12, color: Palantir.danger),
                   const SizedBox(width: 6),
@@ -315,6 +334,9 @@ class _DeltaSScreenState extends ConsumerState<DeltaSScreen> {
       case SocmintPlatform.x:
         icon = Icons.tag;
         color = Palantir.text;
+      case SocmintPlatform.instagram:
+        icon = Icons.camera_alt_outlined;
+        color = Palantir.pink;
       case SocmintPlatform.snapchat:
         icon = Icons.camera_alt;
         color = Palantir.warning;

@@ -36,6 +36,16 @@ class _CrisisFilterScreenState extends ConsumerState<CrisisFilterScreen>
   late TabController _tabCtrl;
   final Set<String> _centcomCategoryFilter = {};
 
+  // EVENTS filters
+  final Set<String> _eventCountryFilter = {};
+  final Set<String> _eventSourceFilter = {};
+  final Set<String> _eventStatusFilter = {};
+
+  // OSINT filters
+  final Set<String> _osintCountryFilter = {};
+  final Set<String> _osintPriorityFilter = {};
+  final Set<String> _osintSourceFilter = {};
+
   @override
   void initState() {
     super.initState();
@@ -104,42 +114,131 @@ class _CrisisFilterScreenState extends ConsumerState<CrisisFilterScreen>
 
   // ── EVENTS TAB ───────────────────────────────────────────────────
 
+  String _eventCountryFromTarget(String target) {
+    final lower = target.toLowerCase();
+    if (lower.contains('uae') || lower.contains('dubai') || lower.contains('abu dhabi')) return 'UAE';
+    if (lower.contains('israel') || lower.contains('tel aviv') || lower.contains('jerusalem')) return 'ISRAEL';
+    if (lower.contains('iran') || lower.contains('tehran') || lower.contains('isfahan')) return 'IRAN';
+    if (lower.contains('ksa') || lower.contains('riyadh') || lower.contains('saudi')) return 'KSA';
+    if (lower.contains('kuwait')) return 'KUWAIT';
+    if (lower.contains('bahrain')) return 'BAHRAIN';
+    if (lower.contains('qatar') || lower.contains('doha')) return 'QATAR';
+    if (lower.contains('lebanon') || lower.contains('beirut')) return 'LEBANON';
+    return 'OTHER';
+  }
+
+  String _eventSourceCategory(String? source) {
+    if (source == null) return 'OTHER';
+    final s = source.toUpperCase();
+    if (s.contains('MOI')) return 'MOI';
+    if (s.contains('MOD')) return 'MOD';
+    if (s.contains('NCEMA')) return 'NCEMA';
+    if (s.contains('CENTCOM')) return 'CENTCOM';
+    if (s.contains('IDF')) return 'IDF';
+    return 'COALITION';
+  }
+
+  String _eventStatusLabel(EventStatus s) {
+    switch (s) {
+      case EventStatus.intercepted: return 'INTERCEPTED';
+      case EventStatus.impact: return 'IMPACT';
+      case EventStatus.ongoing: return 'ONGOING';
+      case EventStatus.neutralized: return 'NEUTRALIZED';
+    }
+  }
+
+  List<AttackEvent> _filteredEvents(List<AttackEvent> events) {
+    var result = events;
+    if (_eventCountryFilter.isNotEmpty) {
+      result = result.where((e) => _eventCountryFilter.contains(_eventCountryFromTarget(e.target))).toList();
+    }
+    if (_eventSourceFilter.isNotEmpty) {
+      result = result.where((e) => _eventSourceFilter.contains(_eventSourceCategory(e.source))).toList();
+    }
+    if (_eventStatusFilter.isNotEmpty) {
+      result = result.where((e) => _eventStatusFilter.contains(_eventStatusLabel(e.status))).toList();
+    }
+    return result;
+  }
+
   Widget _buildEventsTab() {
     final events = ref.watch(eventFeedProvider);
-    return RefreshIndicator(
-      color: Palantir.accent,
-      backgroundColor: Palantir.surface,
-      onRefresh: () async {
-        ref.invalidate(eventFeedProvider);
-        await Future.delayed(const Duration(seconds: 1));
-      },
-      child: events.isEmpty
-          ? ListView(
-              children: [
-                const SizedBox(height: 80),
-                Center(
-                  child: Column(
+    final filtered = _filteredEvents(events);
+
+    return Column(
+      children: [
+        const SizedBox(height: 8),
+        // Country filter
+        FilterChipRow(
+          labels: const ['UAE', 'ISRAEL', 'IRAN', 'KSA', 'KUWAIT', 'BAHRAIN', 'QATAR', 'LEBANON'],
+          selected: _eventCountryFilter,
+          onToggle: (label) => setState(() {
+            _eventCountryFilter.contains(label) ? _eventCountryFilter.remove(label) : _eventCountryFilter.add(label);
+          }),
+          activeColor: Palantir.accent,
+        ),
+        const SizedBox(height: 4),
+        // Source filter
+        FilterChipRow(
+          labels: const ['MOI', 'MOD', 'NCEMA', 'CENTCOM', 'IDF', 'COALITION'],
+          selected: _eventSourceFilter,
+          onToggle: (label) => setState(() {
+            _eventSourceFilter.contains(label) ? _eventSourceFilter.remove(label) : _eventSourceFilter.add(label);
+          }),
+          activeColor: Palantir.info,
+        ),
+        const SizedBox(height: 4),
+        // Status filter
+        FilterChipRow(
+          labels: const ['INTERCEPTED', 'IMPACT', 'ONGOING', 'NEUTRALIZED'],
+          selected: _eventStatusFilter,
+          onToggle: (label) => setState(() {
+            _eventStatusFilter.contains(label) ? _eventStatusFilter.remove(label) : _eventStatusFilter.add(label);
+          }),
+          activeColor: Palantir.warning,
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: RefreshIndicator(
+            color: Palantir.accent,
+            backgroundColor: Palantir.surface,
+            onRefresh: () async {
+              ref.invalidate(eventFeedProvider);
+              await Future.delayed(const Duration(seconds: 1));
+            },
+            child: filtered.isEmpty
+                ? ListView(
                     children: [
-                      Icon(Icons.radar, size: 32, color: Palantir.textMuted),
-                      const SizedBox(height: 12),
-                      Text(
-                        'MONITORING EVENT FEED...',
-                        style: AppTextStyles.mono(size: 10, color: Palantir.textMuted, letterSpacing: 1.5),
+                      const SizedBox(height: 80),
+                      Center(
+                        child: Column(
+                          children: [
+                            Icon(Icons.radar, size: 32, color: Palantir.textMuted),
+                            const SizedBox(height: 12),
+                            Text(
+                              events.isEmpty ? 'MONITORING EVENT FEED...' : 'NO EVENTS MATCH FILTERS',
+                              style: AppTextStyles.mono(size: 10, color: Palantir.textMuted, letterSpacing: 1.5),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              events.isEmpty ? 'Live events will appear here' : 'Adjust filters above',
+                              style: AppTextStyles.sans(size: 11, color: Palantir.textMuted),
+                            ),
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 4),
-                      Text('Live events will appear here', style: AppTextStyles.sans(size: 11, color: Palantir.textMuted)),
                     ],
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: filtered.length,
+                    itemBuilder: (context, index) {
+                      return _buildEventCard(filtered[index]);
+                    },
                   ),
-                ),
-              ],
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: events.length,
-              itemBuilder: (context, index) {
-                return _buildEventCard(events[index]);
-              },
-            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -325,100 +424,196 @@ class _CrisisFilterScreenState extends ConsumerState<CrisisFilterScreen>
 
   // ── OSINT TAB ────────────────────────────────────────────────────
 
+  String _osintCountryFromRegion(String region) {
+    final upper = region.toUpperCase();
+    if (upper.contains('UAE') || upper.contains('DUBAI') || upper.contains('ABU DHABI')) return 'UAE';
+    if (upper.contains('ISRAEL') || upper.contains('TEL AVIV')) return 'ISRAEL';
+    if (upper.contains('IRAN') || upper.contains('TEHRAN')) return 'IRAN';
+    if (upper.contains('SAUDI') || upper.contains('KSA') || upper.contains('RIYADH')) return 'KSA';
+    if (upper.contains('KUWAIT')) return 'KUWAIT';
+    if (upper.contains('BAHRAIN')) return 'BAHRAIN';
+    if (upper.contains('QATAR') || upper.contains('DOHA')) return 'QATAR';
+    if (upper.contains('LEBANON') || upper.contains('BEIRUT')) return 'LEBANON';
+    return 'OTHER';
+  }
+
+  String _osintPriorityLabel(OsintPriority p) {
+    switch (p) {
+      case OsintPriority.flash: return 'FLASH';
+      case OsintPriority.immediate: return 'IMMEDIATE';
+      case OsintPriority.priority: return 'PRIORITY';
+      case OsintPriority.routine: return 'ROUTINE';
+    }
+  }
+
+  String _osintSourceCategory(OsintSource source) {
+    switch (source) {
+      case OsintSource.centcom:
+      case OsintSource.dod:
+      case OsintSource.idf:
+        return 'MILITARY';
+      case OsintSource.reuters:
+      case OsintSource.ap:
+        return 'WIRE';
+      case OsintSource.aljazeera:
+        return 'NEWS';
+      case OsintSource.flightradar:
+        return 'TRACKING';
+      default:
+        return 'OTHER';
+    }
+  }
+
+  List<OsintItem> _filteredOsint(List<OsintItem> items) {
+    var result = items;
+    if (_osintCountryFilter.isNotEmpty) {
+      result = result.where((i) => _osintCountryFilter.contains(_osintCountryFromRegion(i.region))).toList();
+    }
+    if (_osintPriorityFilter.isNotEmpty) {
+      result = result.where((i) => _osintPriorityFilter.contains(_osintPriorityLabel(i.priority))).toList();
+    }
+    if (_osintSourceFilter.isNotEmpty) {
+      result = result.where((i) => _osintSourceFilter.contains(_osintSourceCategory(i.source))).toList();
+    }
+    return result;
+  }
+
   Widget _buildOsintTab() {
     final osintItems = ref.watch(osintProvider);
-    return RefreshIndicator(
-      color: Palantir.accent,
-      backgroundColor: Palantir.surface,
-      onRefresh: () => ref.read(osintProvider.notifier).refresh(),
-      child: osintItems.isEmpty
-          ? ListView(
-              children: [
-                const SizedBox(height: 80),
-                Center(
-                  child: Column(
+    final filtered = _filteredOsint(osintItems);
+
+    return Column(
+      children: [
+        const SizedBox(height: 8),
+        // Country filter
+        FilterChipRow(
+          labels: const ['UAE', 'ISRAEL', 'IRAN', 'KSA', 'KUWAIT', 'BAHRAIN', 'QATAR', 'LEBANON'],
+          selected: _osintCountryFilter,
+          onToggle: (label) => setState(() {
+            _osintCountryFilter.contains(label) ? _osintCountryFilter.remove(label) : _osintCountryFilter.add(label);
+          }),
+          activeColor: Palantir.accent,
+        ),
+        const SizedBox(height: 4),
+        // Priority filter
+        FilterChipRow(
+          labels: const ['FLASH', 'IMMEDIATE', 'PRIORITY', 'ROUTINE'],
+          selected: _osintPriorityFilter,
+          onToggle: (label) => setState(() {
+            _osintPriorityFilter.contains(label) ? _osintPriorityFilter.remove(label) : _osintPriorityFilter.add(label);
+          }),
+          activeColor: Palantir.danger,
+        ),
+        const SizedBox(height: 4),
+        // Source category filter
+        FilterChipRow(
+          labels: const ['MILITARY', 'WIRE', 'NEWS', 'TRACKING', 'OTHER'],
+          selected: _osintSourceFilter,
+          onToggle: (label) => setState(() {
+            _osintSourceFilter.contains(label) ? _osintSourceFilter.remove(label) : _osintSourceFilter.add(label);
+          }),
+          activeColor: Palantir.info,
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: RefreshIndicator(
+            color: Palantir.accent,
+            backgroundColor: Palantir.surface,
+            onRefresh: () => ref.read(osintProvider.notifier).refresh(),
+            child: filtered.isEmpty
+                ? ListView(
                     children: [
-                      Icon(Icons.rss_feed, size: 32, color: Palantir.textMuted),
-                      const SizedBox(height: 12),
-                      Text(
-                        'WAITING FOR OSINT DATA...',
-                        style: AppTextStyles.mono(size: 10, color: Palantir.textMuted, letterSpacing: 1.5),
-                      ),
-                      const SizedBox(height: 4),
-                      Text('Pull to refresh', style: AppTextStyles.sans(size: 11, color: Palantir.textMuted)),
-                    ],
-                  ),
-                ),
-              ],
-            )
-          : ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: osintItems.length,
-        itemBuilder: (context, index) {
-          final item = osintItems[index];
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: PalantirCard(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      _osintSourceBadge(item.source),
-                      const Spacer(),
-                      Text(
-                        formatTimestamp(item.timestamp),
-                        style: AppTextStyles.mono(
-                          size: 10,
-                          color: Palantir.textMuted,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      PriorityBadge(priority: item.priority),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    item.title,
-                    style: AppTextStyles.sans(
-                      size: 13,
-                      weight: FontWeight.w600,
-                      color: Palantir.text,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    item.summary,
-                    style: AppTextStyles.sans(
-                      size: 11,
-                      color: Palantir.textMuted,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Icon(Icons.public, size: 10, color: Palantir.textMuted),
-                      const SizedBox(width: 4),
-                      Text(
-                        item.region,
-                        style: AppTextStyles.mono(
-                          size: 10,
-                          color: Palantir.textMuted,
+                      const SizedBox(height: 80),
+                      Center(
+                        child: Column(
+                          children: [
+                            Icon(Icons.rss_feed, size: 32, color: Palantir.textMuted),
+                            const SizedBox(height: 12),
+                            Text(
+                              osintItems.isEmpty ? 'WAITING FOR OSINT DATA...' : 'NO ITEMS MATCH FILTERS',
+                              style: AppTextStyles.mono(size: 10, color: Palantir.textMuted, letterSpacing: 1.5),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              osintItems.isEmpty ? 'Pull to refresh' : 'Adjust filters above',
+                              style: AppTextStyles.sans(size: 11, color: Palantir.textMuted),
+                            ),
+                          ],
                         ),
                       ),
                     ],
+                  )
+                : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: filtered.length,
+              itemBuilder: (context, index) {
+                final item = filtered[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: PalantirCard(
+                    padding: const EdgeInsets.all(10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            _osintSourceBadge(item.source),
+                            const Spacer(),
+                            Text(
+                              formatTimestamp(item.timestamp),
+                              style: AppTextStyles.mono(
+                                size: 10,
+                                color: Palantir.textMuted,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            PriorityBadge(priority: item.priority),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          item.title,
+                          style: AppTextStyles.sans(
+                            size: 13,
+                            weight: FontWeight.w600,
+                            color: Palantir.text,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          item.summary,
+                          style: AppTextStyles.sans(
+                            size: 11,
+                            color: Palantir.textMuted,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            Icon(Icons.public, size: 10, color: Palantir.textMuted),
+                            const SizedBox(width: 4),
+                            Text(
+                              item.region,
+                              style: AppTextStyles.mono(
+                                size: 10,
+                                color: Palantir.textMuted,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
+                );
+              },
             ),
-          );
-        },
-      ),
+          ),
+        ),
+      ],
     );
   }
 

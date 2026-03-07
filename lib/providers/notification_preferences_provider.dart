@@ -12,6 +12,7 @@ import '../services/push_notification_service.dart';
 
 class NotificationPreferences {
   final bool enabled;
+  final bool soundEnabled;
   final Set<String> countries;
   final Set<String> cities;
   final Set<String> types;
@@ -19,6 +20,7 @@ class NotificationPreferences {
 
   const NotificationPreferences({
     this.enabled = false,
+    this.soundEnabled = true,
     this.countries = const {},
     this.cities = const {},
     this.types = const {'danger'},
@@ -27,6 +29,7 @@ class NotificationPreferences {
 
   NotificationPreferences copyWith({
     bool? enabled,
+    bool? soundEnabled,
     Set<String>? countries,
     Set<String>? cities,
     Set<String>? types,
@@ -34,6 +37,7 @@ class NotificationPreferences {
   }) {
     return NotificationPreferences(
       enabled: enabled ?? this.enabled,
+      soundEnabled: soundEnabled ?? this.soundEnabled,
       countries: countries ?? this.countries,
       cities: cities ?? this.cities,
       types: types ?? this.types,
@@ -115,6 +119,7 @@ class NotificationPreferencesNotifier
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
     final enabled = prefs.getBool('${_prefsPrefix}enabled') ?? false;
+    final soundEnabled = prefs.getBool('${_prefsPrefix}sound_enabled') ?? true;
     final countries =
         (prefs.getStringList('${_prefsPrefix}countries') ?? []).toSet();
     final cities =
@@ -127,6 +132,7 @@ class NotificationPreferencesNotifier
 
     state = NotificationPreferences(
       enabled: enabled,
+      soundEnabled: soundEnabled,
       countries: countries,
       cities: cities,
       types: types,
@@ -137,6 +143,7 @@ class NotificationPreferencesNotifier
   Future<void> _save() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('${_prefsPrefix}enabled', state.enabled);
+    await prefs.setBool('${_prefsPrefix}sound_enabled', state.soundEnabled);
     await prefs.setStringList(
         '${_prefsPrefix}countries', state.countries.toList());
     await prefs.setStringList('${_prefsPrefix}cities', state.cities.toList());
@@ -158,6 +165,11 @@ class NotificationPreferencesNotifier
         debugPrint('[NOTIF] Disable sync error: $e');
       });
     }
+  }
+
+  Future<void> toggleSound(bool value) async {
+    state = state.copyWith(soundEnabled: value);
+    await _save();
   }
 
   Future<void> toggleCountry(String code, bool subscribe) async {

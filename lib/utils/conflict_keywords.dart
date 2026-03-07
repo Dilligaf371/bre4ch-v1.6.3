@@ -6,6 +6,7 @@
 /// Keywords that indicate a headline is related to the Iran-Israel theatre.
 /// Used to filter RSS/news feeds for conflict-relevant items.
 const List<String> conflictKeywords = [
+  // English
   'iran',
   'israel',
   'military',
@@ -22,6 +23,21 @@ const List<String> conflictKeywords = [
   'gulf',
   'navy',
   'air force',
+  'evacuation',
+  'repatriation',
+  'expats',
+  // Arabic
+  'صاروخ',    // missile
+  'هجوم',     // attack
+  'طائرة مسيرة', // drone
+  'قصف',      // shelling
+  'حرب',      // war
+  'نووي',     // nuclear
+  'حزب الله',  // Hezbollah
+  'غزة',      // Gaza
+  'إيران',    // Iran
+  'عسكري',    // military
+  'إجلاء',    // evacuation
 ];
 
 /// Checks whether a given text contains any conflict keyword.

@@ -55,6 +55,10 @@ class NotificationSettingsScreen extends ConsumerWidget {
                     _buildMasterToggle(prefs, notifier),
                     const SizedBox(height: 16),
 
+                    // Alert Sounds
+                    _buildAlertSoundsSection(prefs, notifier),
+                    const SizedBox(height: 16),
+
                     // Severity
                     _buildSeveritySection(prefs, notifier),
                     const SizedBox(height: 16),
@@ -129,6 +133,74 @@ class NotificationSettingsScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildAlertSoundsSection(NotificationPreferences prefs, NotificationPreferencesNotifier notifier) {
+    return PalantirCard(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('ALERT SOUNDS', style: AppTextStyles.sectionTitle),
+                    const SizedBox(height: 4),
+                    Text('Audio alerts for high-priority events',
+                        style: AppTextStyles.sans(size: 11, color: Palantir.textMuted)),
+                  ],
+                ),
+              ),
+              Switch.adaptive(
+                value: prefs.soundEnabled,
+                onChanged: prefs.enabled ? (v) => notifier.toggleSound(v) : null,
+                activeColor: Palantir.accent,
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Sound level descriptions
+          _soundLevelRow('EXTREME', 'Police siren (5s loop)', Palantir.danger),
+          const SizedBox(height: 8),
+          _soundLevelRow('SEVERE', 'Radar ping (single)', Palantir.orange),
+          const SizedBox(height: 8),
+          _soundLevelRow('MODERATE', 'Silent', Palantir.warning),
+        ],
+      ),
+    );
+  }
+
+  Widget _soundLevelRow(String level, String description, Color color) {
+    return Row(
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: color,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          level,
+          style: AppTextStyles.mono(
+            size: 11,
+            weight: FontWeight.w700,
+            color: color,
+            letterSpacing: 0.8,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          description,
+          style: AppTextStyles.sans(size: 11, color: Palantir.textMuted),
+        ),
+      ],
     );
   }
 
