@@ -15,6 +15,7 @@ import '../widgets/common/header_bar.dart';
 import '../widgets/common/palantir_card.dart';
 import '../widgets/common/collapsible_section.dart';
 import '../widgets/common/pulsing_dot.dart';
+import '../widgets/conflict/conflict_map_view.dart';
 
 // ── Data structures ──────────────────────────────────────────────────
 
@@ -572,6 +573,7 @@ class WarStateScreen extends ConsumerStatefulWidget {
 }
 
 class _WarStateScreenState extends ConsumerState<WarStateScreen> {
+  int _viewIndex = 0; // 0 = INTEL, 1 = MAP
   String _selectedCountry = 'ALL';
   Timer? _refreshTimer;
 
@@ -620,25 +622,82 @@ class _WarStateScreenState extends ConsumerState<WarStateScreen> {
     }
   }
 
+  Widget _buildToggle(String label, int index) {
+    final active = _viewIndex == index;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _viewIndex = index),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: active
+                ? Palantir.accent.withValues(alpha: 0.15)
+                : Palantir.surface,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(
+              color: active ? Palantir.accent : Palantir.border,
+            ),
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: AppTextStyles.mono(
+              size: 10,
+              weight: FontWeight.w600,
+              color: active ? Palantir.accent : Palantir.textMuted,
+              letterSpacing: 1.5,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final coalitionFiltered = _filteredCoalition;
-    final axisFiltered = _filteredAxis;
-    final nonBelligerentFiltered = _filteredNonBelligerents;
-
     return Scaffold(
       backgroundColor: Palantir.bg,
       body: SafeArea(
         child: Column(
           children: [
             const HeaderBar(),
-            _buildCountryFilter(),
+            // View toggle — INTEL / MAP
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  _buildToggle('INTEL', 0),
+                  const SizedBox(width: 6),
+                  _buildToggle('MAP', 1),
+                ],
+              ),
+            ),
+            // Content
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+              child: _viewIndex == 0
+                  ? _buildIntelView()
+                  : const ConflictMapView(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIntelView() {
+    final coalitionFiltered = _filteredCoalition;
+    final axisFiltered = _filteredAxis;
+    final nonBelligerentFiltered = _filteredNonBelligerents;
+
+    return Column(
+      children: [
+        _buildCountryFilter(),
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                     // Coalition section
                     if (_selectedCountry == 'ALL' || _isCoalitionFilter)
                       CollapsibleSection(
@@ -746,9 +805,7 @@ class _WarStateScreenState extends ConsumerState<WarStateScreen> {
               ),
             ),
           ],
-        ),
-      ),
-    );
+        );
   }
 
   // ── Country filter bar ──────────────────────────────────────────
