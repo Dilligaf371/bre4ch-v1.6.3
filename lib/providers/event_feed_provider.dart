@@ -18,11 +18,87 @@ import '../services/liveuamap_service.dart';
 import '../services/breach_socket_service.dart';
 import '../config/api.dart';
 
+// ── RFC 2822 date parser (shared with osint_provider) ────────────
+/// Parses dates in RFC 2822 format (standard RSS), ISO 8601, or common
+/// variants. Returns null if the string cannot be parsed at all.
+///
+/// Supported formats:
+///   "Wed, 08 Mar 2026 12:00:00 +0000"  (RFC 2822)
+///   "Wed, 08 Mar 2026 12:00:00 GMT"
+///   "8 Mar 2026 12:00:00 +0400"
+///   "2026-03-08T12:00:00Z"             (ISO 8601)
+///   "2026-03-08"                        (date only)
+DateTime? _parseDateRobust(String input) {
+  if (input.isEmpty) return null;
+
+  // Try ISO 8601 first (fast path)
+  final iso = DateTime.tryParse(input);
+  if (iso != null) return iso.toUtc();
+
+  // RFC 2822 month abbreviation map
+  const months = {
+    'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
+    'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12,
+  };
+
+  // Strip optional day-name prefix: "Wed, " or "Wednesday, "
+  var s = input.trim();
+  final commaIdx = s.indexOf(',');
+  if (commaIdx >= 0 && commaIdx <= 10) s = s.substring(commaIdx + 1).trim();
+
+  // Pattern: DD Mon YYYY HH:MM:SS ±HHMM | GMT | UTC | Z
+  final rx = RegExp(
+    r'(\d{1,2})\s+([A-Za-z]{3,})\s+(\d{4})'
+    r'(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?'
+    r'(?:\s*([+-]\d{4}|[A-Z]{2,4}))?',
+  );
+  final m = rx.firstMatch(s);
+  if (m == null) return null;
+
+  final day = int.tryParse(m.group(1)!) ?? 0;
+  final monStr = (m.group(2)!).toLowerCase().substring(0, 3);
+  final month = months[monStr];
+  if (month == null) return null;
+  final year = int.tryParse(m.group(3)!) ?? 0;
+  final hour = int.tryParse(m.group(4) ?? '0') ?? 0;
+  final min = int.tryParse(m.group(5) ?? '0') ?? 0;
+  final sec = int.tryParse(m.group(6) ?? '0') ?? 0;
+
+  if (year < 2020 || day < 1 || day > 31) return null;
+
+  var dt = DateTime.utc(year, month, day, hour, min, sec);
+
+  // Apply timezone offset if present (e.g., +0400 → subtract 4h to get UTC)
+  final tz = m.group(7) ?? '';
+  if (tz.isNotEmpty && tz != 'UTC' && tz != 'GMT' && tz != 'Z') {
+    final tzRx = RegExp(r'^([+-])(\d{2})(\d{2})$');
+    final tzM = tzRx.firstMatch(tz);
+    if (tzM != null) {
+      final sign = tzM.group(1) == '+' ? 1 : -1;
+      final tzH = int.parse(tzM.group(2)!);
+      final tzMin = int.parse(tzM.group(3)!);
+      dt = dt.subtract(Duration(hours: sign * tzH, minutes: sign * tzMin));
+    }
+  }
+
+  return dt;
+}
+
 // ── Persistence constants ────────────────────────────────────────
-const String _eventCacheKey = 'event_cache_v1';
-/// Retention covers from the start of the conflict (Oct 2023) to present.
-/// Using 600 days to ensure all historical data is preserved.
-const int _eventRetentionDays = 600;
+const String _eventCacheKey = 'event_cache_v2'; // v2: strict conflict filter
+/// Retention: from mission start (28 Feb 2026) onward. ~365 days is plenty.
+const int _eventRetentionDays = 365;
+
+// ── Mission start hard gate ─────────────────────────────────────
+/// Reject ALL events before the Iran conflict started.
+final int _missionStartMs = DateTime.utc(2026, 2, 28, 2, 0, 0).millisecondsSinceEpoch;
+
+// ── Priority sources (trusted — bypass keyword filter) ──────────
+const Set<String> _prioritySources = {
+  '@modgovae', 'modgovae', 'MOD UAE', 'MOD UAE 🇦🇪',
+  '@CENTCOM', 'CENTCOM', 'centcom',
+  '@IDF', 'IDF', 'idf',
+};
 const int _maxCachedEvents = 10000;
 
 // ── Source URL mapping ───────────────────────────────────────────
@@ -113,111 +189,52 @@ final Set<String> _officialGovHandles = _sourceUrls.keys
     .map((k) => k.toLowerCase())
     .toSet();
 
-// ── Content-based GOV source detection ──────────────────────────
+// ── (GOV source detection removed — was randomly misattributing RSS
+//    headlines to X/IG accounts. Real GOV posts are correctly handled
+//    by _socmintGovToEvent via the WS socmint channel.) ──────────
 
-/// Detect GOV source from headline content → return display label.
-/// Broadened detection: any military/security/diplomatic headline gets
-/// tagged with the appropriate GOV entity for the detected region.
-Map<String, String>? _detectGovSource(String title) {
-  final lower = title.toLowerCase();
-  final region = _detectTargetRegion(title);
+// ── Conflict relevance filter ────────────────────────────────────
+// STRICT: country/city names alone are NOT enough to pass.
+// At least one actual military/conflict term is required.
+// Country names are used ONLY in _detectTargetRegion for labeling.
 
-  // Only for recognized country regions
-  if (region == 'Iran Theater') return null;
-
-  // MOD: defense / military / armed forces / intercepts / strikes / weapons
-  if (lower.contains('ministry of defense') || lower.contains('ministry of defence') ||
-      lower.contains('defense ministry') || lower.contains('defence ministry') ||
-      lower.contains('وزارة الدفاع') || lower.contains('armed forces') ||
-      lower.contains('القوات المسلحة') || lower.contains('military') ||
-      lower.contains('عسكري') || lower.contains('intercept') ||
-      lower.contains('اعتراض') || lower.contains('missile') ||
-      lower.contains('صاروخ') || lower.contains('air defense') ||
-      lower.contains('air defence') || lower.contains('دفاع جوي') ||
-      lower.contains('navy') || lower.contains('بحرية') ||
-      lower.contains('air force') || lower.contains('سلاح الجو') ||
-      lower.contains('army') || lower.contains('الجيش') ||
-      lower.contains('drone') || lower.contains('طائرة مسيرة') ||
-      lower.contains('strike') || lower.contains('ضربة') ||
-      lower.contains('bomb') || lower.contains('قصف') ||
-      lower.contains('artillery') || lower.contains('shell') ||
-      lower.contains('warhead') || lower.contains('ballistic') ||
-      lower.contains('radar') || lower.contains('shot down') ||
-      lower.contains('anti-aircraft') || lower.contains('مضاد للطائرات') ||
-      lower.contains('war') || lower.contains('حرب') ||
-      lower.contains('kill') || lower.contains('قتل') ||
-      lower.contains('destroyed') || lower.contains('دمر')) {
-    return _govLabel('MOD', region);
-  }
-
-  // NCEMA: emergency / civil defense / shelter / warning (before MOI)
-  if (lower.contains('ncema') || lower.contains('emergency management') ||
-      lower.contains('إدارة الطوارئ') || lower.contains('civil defense') ||
-      lower.contains('civil defence') || lower.contains('الدفاع المدني') ||
-      lower.contains('shelter') || lower.contains('ملجأ') ||
-      lower.contains('sirens') || lower.contains('warning system') ||
-      lower.contains('إنذار')) {
-    return _govLabel('NCEMA', region);
-  }
-
-  // MOI: interior / police / security / border / arrests
-  if (lower.contains('ministry of interior') || lower.contains('interior ministry') ||
-      lower.contains('وزارة الداخلية') || lower.contains('police') ||
-      lower.contains('شرطة') || lower.contains('security forces') ||
-      lower.contains('قوات الأمن') || lower.contains('border') ||
-      lower.contains('حدود') || lower.contains('arrest') ||
-      lower.contains('اعتقال') || lower.contains('security alert') ||
-      lower.contains('تنبيه أمني') || lower.contains('الأمن العام')) {
-    return _govLabel('MOI', region);
-  }
-
-  // MOFA: foreign affairs / embassy / diplomacy / evacuation / travel
-  if (lower.contains('foreign affairs') || lower.contains('foreign ministry') ||
-      lower.contains('وزارة الخارجية') || lower.contains('embassy') ||
-      lower.contains('السفارة') || lower.contains('diplomatic') ||
-      lower.contains('دبلوماسي') || lower.contains('consular') ||
-      lower.contains('قنصلي') || lower.contains('evacuat') ||
-      lower.contains('إجلاء') || lower.contains('repatriat') ||
-      lower.contains('travel advisory') || lower.contains('تحذير سفر') ||
-      lower.contains('expat') || lower.contains('nationals abroad') ||
-      lower.contains('رعايا')) {
-    return _govLabel('MOFA', region);
-  }
-
-  return null;
-}
-
-const Map<String, String> _regionFlags = {
-  'UAE': '🇦🇪', 'Iran': '🇮🇷', 'Israel': '🇮🇱', 'KSA': '🇸🇦',
-  'Kuwait': '🇰🇼', 'Bahrain': '🇧🇭', 'Qatar': '🇶🇦', 'Oman': '🇴🇲',
-  'Jordan': '🇯🇴', 'Lebanon': '🇱🇧', 'Iraq': '🇮🇶', 'Syria': '🇸🇾',
-  'Yemen': '🇾🇪', 'USA': '🇺🇸', 'UK': '🇬🇧', 'France': '🇫🇷',
-};
-
-Map<String, String> _govLabel(String entity, String region) {
-  final flag = _regionFlags[region] ?? '';
-  final label = flag.isNotEmpty ? '$entity $region $flag' : entity;
-  return {'name': label, 'url': ''};
-}
-
-// ── Conflict keyword filter ──────────────────────────────────────
-
-const List<String> _conflictKeywords = [
+const List<String> _conflictTerms = [
+  // ── Core conflict terms ──
   'iran', 'israel', 'military', 'strike', 'missile', 'kill', 'attack', 'war',
-  'drone', 'bomb', 'nuclear', 'hezbollah', 'gaza', 'gulf', 'navy', 'air force',
+  'drone', 'bomb', 'nuclear', 'hezbollah', 'gaza', 'navy', 'air force',
   'centcom', 'intercept', 'defense', 'defence', 'houthi', 'yemen', 'lebanon',
-  // UAE / GCC specific
-  'uae', 'emirates', 'dubai', 'abu dhabi', 'sharjah', 'bahrain', 'qatar',
-  'kuwait', 'saudi', 'ksa', 'oman', 'muscat', 'doha', 'manama', 'riyadh',
-  // Coalition / Axis
   'coalition', 'nato', 'pentagon', 'pmf', 'irgc', 'quds',
-  // Arabic conflict terms
+  // ── Extended military terms ──
+  'ballistic', 'cruise missile', 'artillery', 'rocket', 'shell', 'mortar',
+  'airstrike', 'airbase', 'warship', 'submarine', 'torpedo', 'shrapnel',
+  'bunker', 'convoy', 'checkpoint', 'ceasefire', 'truce', 'invasion',
+  'occupation', 'blockade', 'embargo', 'militia', 'insurgent', 'weapon',
+  'ammunition', 'explosive', 'detonate', 'crater', 'debris', 'casualties',
+  'wounded', 'martyr', 'shahid', 'retaliat', 'escalat', 'deploy', 'sanction',
+  'sabotage', 'operation', 'evacuate', 'shelter', 'siren', 'alert', 'raid',
+  'target', 'threat', 'combat', 'troops', 'infantry', 'armor', 'tank',
+  'patriot', 'thaad', 'iron dome', 'arrow', 'air defense', 'shot down',
+  'proxy', 'terror', 'hostage', 'negotiat', 'diplomat', 'ultimatum',
+  // ── Arabic conflict terms ──
   'هجوم', 'صاروخ', 'طائرة مسيرة', 'ضربة', 'قتل', 'حرب', 'إجلاء',
-  'دفاع', 'اعتراض', 'نووي',
-  // Official source keywords (to catch MOI/MOD/MOFA announcements)
+  'دفاع', 'اعتراض', 'نووي', 'غارة', 'قصف', 'حصار', 'شهيد',
+  'عسكري', 'جيش', 'درون', 'صاروخ باليستي', 'إيران',
+  // ── Ministry/defense announcements ──
   'ministry of defense', 'ministry of interior', 'foreign affairs',
   'وزارة الدفاع', 'وزارة الداخلية', 'وزارة الخارجية',
 ];
+
+/// Check if text is conflict-relevant (requires actual military/conflict terms).
+bool _isConflictRelevant(String text) {
+  final lower = text.toLowerCase();
+  return _conflictTerms.any((kw) => lower.contains(kw));
+}
+
+/// Check if a source is a priority/trusted source (bypasses keyword filter).
+bool _isPrioritySource(String source) {
+  final lower = source.toLowerCase();
+  return _prioritySources.any((p) => lower.contains(p.toLowerCase()));
+}
 
 // ── Target region detection ─────────────────────────────────────
 
@@ -245,39 +262,6 @@ String _detectTargetRegion(String text) {
   return 'Iran Theater';
 }
 
-// ── Pick a GOV X handle for a given region ──────────────────────
-
-String _pickXHandleForRegion(String region) {
-  switch (region) {
-    case 'UAE':     return '@modgovae';
-    case 'KSA':     return '@modaboron_sa';
-    case 'Kuwait':  return '@modkuwait';
-    case 'Bahrain': return '@BDFaboron';
-    case 'Qatar':   return '@moaboron_qa';
-    case 'Oman':    return '@moaboron_om';
-    case 'Jordan':  return '@AFJordan';
-    case 'Lebanon': return '@LAFaboron';
-    case 'Israel':  return '@IDF';
-    case 'Iran':    return '@IRGCaboron';
-    case 'USA':     return '@CENTCOM';
-    case 'UK':      return '@foreignoffice';
-    case 'France':  return '@francediplo';
-    default:        return '@Conflicts';
-  }
-}
-
-/// Pick an IG account label for a given region.
-String _pickIgLabelForRegion(String region) {
-  switch (region) {
-    case 'UAE':     return 'MOD IG 🇦🇪';
-    case 'KSA':     return 'MOD IG 🇸🇦';
-    case 'Kuwait':  return 'MOD IG 🇰🇼';
-    case 'Bahrain': return 'MOI IG 🇧🇭';
-    case 'Qatar':   return 'MOI IG 🇶🇦';
-    case 'Oman':    return 'MOD IG 🇴🇲';
-    default:        return 'NCEMA IG 🇦🇪';
-  }
-}
 
 final _rng = Random();
 
@@ -295,7 +279,7 @@ String _contentHash(String title, String source, String date) {
 
 // ── Convert live headline to AttackEvent ─────────────────────────
 
-AttackEvent _liveHeadlineToEvent(Map<String, dynamic> h) {
+AttackEvent? _liveHeadlineToEvent(Map<String, dynamic> h) {
   final title = h['title'] as String? ?? '';
   final src = h['source'] as String? ?? '';
   final pubDate = h['pubDate'] as String? ?? '';
@@ -325,34 +309,22 @@ AttackEvent _liveHeadlineToEvent(Map<String, dynamic> h) {
     status = EventStatus.neutralized;
   }
 
-  // GOV source detection: if headline mentions a government entity,
-  // tag event with the GOV label instead of the news agency source.
-  // Some GOV events are tagged as X or IG sourced (simulating social
-  // media feeds from official government accounts).
-  final govSource = _detectGovSource(title);
-  Map<String, String> srcInfo;
-  if (govSource != null) {
-    final roll = _rng.nextDouble();
-    final region = _detectTargetRegion(title);
-    if (roll < 0.30) {
-      // ~30% tagged as X source
-      final handle = _pickXHandleForRegion(region);
-      srcInfo = {'name': 'X $handle', 'url': 'https://x.com/${handle.replaceAll('@', '')}'};
-    } else if (roll < 0.45) {
-      // ~15% tagged as IG source
-      srcInfo = {'name': _pickIgLabelForRegion(region), 'url': ''};
-    } else {
-      srcInfo = govSource;
-    }
-  } else {
-    srcInfo = _sourceUrls[src] ?? {'name': src, 'url': ''};
-  }
+  // Source attribution: always use the actual RSS feed source.
+  // GOV labels (MOD UAE, etc.) are only applied to posts that arrive
+  // through the socmint channel (real X/IG posts from _socmintGovToEvent).
+  // Headlines from news agencies (WAM, Reuters, etc.) keep their real source.
+  final srcInfo = _sourceUrls[src] ?? {'name': src, 'url': ''};
 
+  // Parse date robustly (handles RFC 2822 from RSS + ISO 8601).
+  // Fall back to DateTime.now() only if pubDate is empty or truly unparseable.
   int ts = DateTime.now().millisecondsSinceEpoch;
   if (pubDate.isNotEmpty) {
-    final parsed = DateTime.tryParse(pubDate);
+    final parsed = _parseDateRobust(pubDate);
     if (parsed != null) ts = parsed.millisecondsSinceEpoch;
   }
+
+  // ── DATE GATE: reject events before mission start (28 Feb 2026) ──
+  if (ts < _missionStartMs) return null;
 
   return AttackEvent(
     id: _randomId('live-evt'),
@@ -413,9 +385,15 @@ AttackEvent? _socmintGovToEvent(Map<String, dynamic> m) {
   final normalized = source.toLowerCase();
   if (!_officialGovHandles.contains(normalized)) return null;
 
-  // Filter: must contain conflict-relevant content
+  // Date gate: reject pre-war posts
+  if (timestamp < _missionStartMs) return null;
+
+  // Priority sources (@modgovae, CENTCOM, IDF): pass everything
+  // Other GOV accounts: require at least one conflict term
   final lowerContent = content.toLowerCase();
-  if (!_conflictKeywords.any((kw) => lowerContent.contains(kw))) return null;
+  if (!_isPrioritySource(source) && !_isConflictRelevant(lowerContent)) {
+    return null;
+  }
 
   // Lookup display name from _sourceUrls (try original case, then lowercase)
   final srcInfo = _sourceUrls[source] ??
@@ -503,7 +481,10 @@ class EventFeedNotifier extends StateNotifier<List<AttackEvent>> {
       for (final item in decoded) {
         try {
           final evt = AttackEvent.fromJson(item as Map<String, dynamic>);
-          if (evt.timestamp >= cutoff && _seenIds.add(evt.id)) {
+          // Hard gate: only load events after mission start
+          if (evt.timestamp >= _missionStartMs &&
+              evt.timestamp >= cutoff &&
+              _seenIds.add(evt.id)) {
             _injected.add(_contentHash(evt.details, evt.source ?? '', ''));
             cached.add(evt);
           }
@@ -542,7 +523,11 @@ class EventFeedNotifier extends StateNotifier<List<AttackEvent>> {
     final cutoff = DateTime.now().subtract(const Duration(days: _eventRetentionDays)).millisecondsSinceEpoch;
     final merged = [...newItems, ...state];
     merged.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-    state = merged.where((e) => e.timestamp >= cutoff).take(_maxCachedEvents).toList();
+    // Hard gate: only events after mission start AND within retention window
+    state = merged
+        .where((e) => e.timestamp >= _missionStartMs && e.timestamp >= cutoff)
+        .take(_maxCachedEvents)
+        .toList();
     _scheduleSave();
   }
 
@@ -634,8 +619,10 @@ class EventFeedNotifier extends StateNotifier<List<AttackEvent>> {
   void _processHeadlines(List<dynamic> headlines) {
     final relevant = headlines.where((h) {
       final map = h as Map<String, dynamic>;
-      final l = (map['title'] as String? ?? '').toLowerCase();
-      return _conflictKeywords.any((kw) => l.contains(kw));
+      final title = (map['title'] as String? ?? '');
+      final src = (map['source'] as String? ?? '');
+      // Priority sources always pass; others need conflict terms
+      return _isPrioritySource(src) || _isConflictRelevant(title);
     }).toList();
 
     final newOnes = relevant.where((h) {
@@ -648,7 +635,10 @@ class EventFeedNotifier extends StateNotifier<List<AttackEvent>> {
     }).toList();
     if (newOnes.isEmpty) return;
 
-    final events = newOnes.map((h) => _liveHeadlineToEvent(h as Map<String, dynamic>)).toList();
+    final events = newOnes
+        .map((h) => _liveHeadlineToEvent(h as Map<String, dynamic>))
+        .whereType<AttackEvent>() // filter out nulls (pre-war date gate)
+        .toList();
     for (final h in newOnes) {
       final map = h as Map<String, dynamic>;
       _injected.add(_contentHash(
@@ -666,8 +656,9 @@ class EventFeedNotifier extends StateNotifier<List<AttackEvent>> {
       if (headlines.isEmpty || !mounted) return;
 
       final relevant = headlines.where((h) {
-        final l = (h['title'] as String? ?? '').toLowerCase();
-        return _conflictKeywords.any((kw) => l.contains(kw));
+        final title = (h['title'] as String? ?? '');
+        final src = (h['source'] as String? ?? '');
+        return _isPrioritySource(src) || _isConflictRelevant(title);
       }).toList();
 
       final newOnes = relevant.where((h) {
@@ -679,7 +670,10 @@ class EventFeedNotifier extends StateNotifier<List<AttackEvent>> {
       }).toList();
       if (newOnes.isEmpty) return;
 
-      final events = newOnes.map(_liveHeadlineToEvent).toList();
+      final events = newOnes
+          .map(_liveHeadlineToEvent)
+          .whereType<AttackEvent>()
+          .toList();
       for (final h in newOnes) {
         _injected.add(_contentHash(
           h['title'] as String? ?? '',

@@ -1,0 +1,60 @@
+{
+  "stats": {
+    "ad-uae-dhafra": {
+      "ballisticIntercepted": 205,
+      "cruiseIntercepted": 8,
+      "droneIntercepted": 1229,
+      "totalIntercepted": 1442,
+      "lastUpdated": "2026-03-07T10:22:00Z"
+    },
+    "ad-kw-arifjan": {
+      "ballisticIntercepted": 97,
+      "cruiseIntercepted": 0,
+      "droneIntercepted": 283,
+      "totalIntercepted": 380,
+      "lastUpdated": "2026-03-06T09:00:00Z"
+    },
+    "ad-bh-nsa": {
+      "ballisticIntercepted": 75,
+      "cruiseIntercepted": 0,
+      "droneIntercepted": 123,
+      "totalIntercepted": 198,
+      "lastUpdated": "2026-03-07T11:30:00Z"
+    },
+    "ad-qa-udeid": {
+      "ballisticIntercepted": 98,
+      "cruiseIntercepted": 3,
+      "droneIntercepted": 39,
+      "totalIntercepted": 140,
+      "lastUpdated": "2026-03-04T15:45:00Z"
+    },
+    "ad-ksa-riyadh": {
+      "ballisticIntercepted": 5,
+      "cruiseIntercepted": 2,
+      "droneIntercepted": 11,
+      "totalIntercepted": 18,
+      "lastUpdated": "2026-03-07T13:10:00Z"
+    },
+    "ad-om-muscat": {
+      "ballisticIntercepted": 0,
+      "cruiseIntercepted": 0,
+      "droneIntercepted": 2,
+      "totalIntercepted": 2,
+      "lastUpdated": "2026-03-03T17:26:00Z"
+    },
+    "ad-il-center": {
+      "ballisticIntercepted": 312,
+      "cruiseIntercepted": 87,
+      "droneIntercepted": 876,
+      "totalIntercepted": 1275,
+      "lastUpdated": "2026-03-04T14:00:00Z"
+    },
+    "ad-us-aegis": {
+      "ballisticIntercepted": 42,
+      "cruiseIntercepted": 18,
+      "droneIntercepted": 0,
+      "totalIntercepted": 60,
+      "lastUpdated": "2026-02-28T18:30:00Z"
+    }
+  }
+}

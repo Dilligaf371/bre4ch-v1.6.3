@@ -301,7 +301,7 @@ class RoadmapScreen extends StatelessWidget {
           _milestoneRow('v1.5', 'SOCMINT + emergency alerts', MilestoneStatus.complete),
           _milestoneRow('v1.6', 'WebSocket real-time architecture', MilestoneStatus.active),
           _milestoneRow('v1.7', 'Real-time map overlays', MilestoneStatus.pending),
-          _milestoneRow('v1.8', 'AI Agent Integration', MilestoneStatus.pending),
+          _milestoneRow('v1.8', 'AI Agent Integration', MilestoneStatus.active),
         ],
       ),
     );
