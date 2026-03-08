@@ -16,7 +16,7 @@ import '../services/breach_socket_service.dart';
 import '../config/api.dart';
 
 // ── Persistence constants ────────────────────────────────────────
-const String _osintCacheKey = 'osint_cache_v2';
+const String _osintCacheKey = 'osint_cache_v3';
 /// Only keep J (today) and J-1 (yesterday). Older articles are irrelevant.
 const int _retentionDays = 2;
 const int _maxCachedItems = 500;
@@ -96,6 +96,72 @@ int _recentCutoffMs() =>
 /// Returns true if [timestampMs] is within the J / J-1 window.
 bool _isRecent(int timestampMs) => timestampMs >= _recentCutoffMs();
 
+// ── RFC 2822 date parser ─────────────────────────────────────────
+/// Parses dates in RFC 2822 format (standard RSS), ISO 8601, or common
+/// variants. Returns null if the string cannot be parsed at all.
+///
+/// Supported formats:
+///   "Wed, 08 Mar 2026 12:00:00 +0000"  (RFC 2822)
+///   "Wed, 08 Mar 2026 12:00:00 GMT"
+///   "8 Mar 2026 12:00:00 +0400"
+///   "2026-03-08T12:00:00Z"             (ISO 8601)
+///   "2026-03-08"                        (date only)
+DateTime? _parseDateRobust(String input) {
+  if (input.isEmpty) return null;
+
+  // Try ISO 8601 first (fast path)
+  final iso = DateTime.tryParse(input);
+  if (iso != null) return iso.toUtc();
+
+  // RFC 2822 month abbreviation map
+  const months = {
+    'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
+    'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12,
+  };
+
+  // Strip optional day-name prefix: "Wed, " or "Wednesday, "
+  var s = input.trim();
+  final commaIdx = s.indexOf(',');
+  if (commaIdx >= 0 && commaIdx <= 10) s = s.substring(commaIdx + 1).trim();
+
+  // Pattern: DD Mon YYYY HH:MM:SS ±HHMM | GMT | UTC | Z
+  final rx = RegExp(
+    r'(\d{1,2})\s+([A-Za-z]{3,})\s+(\d{4})'
+    r'(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?'
+    r'(?:\s*([+-]\d{4}|[A-Z]{2,4}))?',
+  );
+  final m = rx.firstMatch(s);
+  if (m == null) return null;
+
+  final day = int.tryParse(m.group(1)!) ?? 0;
+  final monStr = (m.group(2)!).toLowerCase().substring(0, 3);
+  final month = months[monStr];
+  if (month == null) return null;
+  final year = int.tryParse(m.group(3)!) ?? 0;
+  final hour = int.tryParse(m.group(4) ?? '0') ?? 0;
+  final min = int.tryParse(m.group(5) ?? '0') ?? 0;
+  final sec = int.tryParse(m.group(6) ?? '0') ?? 0;
+
+  if (year < 2020 || day < 1 || day > 31) return null;
+
+  var dt = DateTime.utc(year, month, day, hour, min, sec);
+
+  // Apply timezone offset if present (e.g., +0400 → subtract 4h to get UTC)
+  final tz = m.group(7) ?? '';
+  if (tz.isNotEmpty && tz != 'UTC' && tz != 'GMT' && tz != 'Z') {
+    final tzRx = RegExp(r'^([+-])(\d{2})(\d{2})$');
+    final tzM = tzRx.firstMatch(tz);
+    if (tzM != null) {
+      final sign = tzM.group(1) == '+' ? 1 : -1;
+      final tzH = int.parse(tzM.group(2)!);
+      final tzMin = int.parse(tzM.group(3)!);
+      dt = dt.subtract(Duration(hours: sign * tzH, minutes: sign * tzMin));
+    }
+  }
+
+  return dt;
+}
+
 // ── Helpers ──────────────────────────────────────────────────────
 
 final _rng = Random();
@@ -107,7 +173,7 @@ String _randomId(String prefix) {
 }
 
 /// Converts a raw headline map to [OsintItem], or returns `null` if the
-/// article's pubDate is older than J-1 (yesterday).
+/// article's pubDate is older than J-1 (yesterday) or cannot be parsed.
 OsintItem? liveHeadlineToOsint(Map<String, dynamic> h) {
   final title = h['title'] as String? ?? '';
   final link = h['link'] as String? ?? '';
@@ -115,14 +181,15 @@ OsintItem? liveHeadlineToOsint(Map<String, dynamic> h) {
   final src = h['source'] as String? ?? '';
 
   // ── Date gate: reject articles older than J-1 ──────────────────
-  int ts = DateTime.now().millisecondsSinceEpoch;
-  if (pubDate.isNotEmpty) {
-    final parsed = DateTime.tryParse(pubDate);
-    if (parsed != null) {
-      ts = parsed.millisecondsSinceEpoch;
-      if (!_isRecent(ts)) return null; // Too old — discard
-    }
-  }
+  // If pubDate is empty or cannot be parsed → REJECT (no silent passthrough).
+  // This prevents undated or badly-dated articles (e.g. 2016) from leaking in.
+  if (pubDate.isEmpty) return null;
+
+  final parsed = _parseDateRobust(pubDate);
+  if (parsed == null) return null; // Unparseable date → reject
+
+  final ts = parsed.millisecondsSinceEpoch;
+  if (!_isRecent(ts)) return null; // Too old → reject
 
   final source = sourceMap[src] ?? OsintSource.reuters;
 
