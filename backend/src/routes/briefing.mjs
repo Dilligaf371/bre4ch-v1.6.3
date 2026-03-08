@@ -11,6 +11,8 @@ import {
   getBriefingStatus,
   generateBriefing,
 } from '../services/briefing-agent.mjs';
+import { requireAdmin } from '../middleware/auth.mjs';
+import { adminLimiter } from '../middleware/rate-limit.mjs';
 
 const router = Router();
 
@@ -35,7 +37,7 @@ router.get('/briefing/status', (_req, res) => {
 
 // ── POST /api/briefing/generate — manual trigger ─────────────────
 
-router.post('/briefing/generate', async (_req, res) => {
+router.post('/briefing/generate', requireAdmin, adminLimiter, async (_req, res) => {
   try {
     const result = await generateBriefing();
     if (!result) {

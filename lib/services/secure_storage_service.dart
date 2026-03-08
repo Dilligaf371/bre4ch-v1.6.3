@@ -8,9 +8,12 @@ class SecureStorageService {
   SecureStorageService._();
   static final SecureStorageService instance = SecureStorageService._();
 
+  // H-03 FIX: first_unlock_this_device_only prevents cross-device restore
   static const _storage = FlutterSecureStorage(
     aOptions: AndroidOptions(encryptedSharedPreferences: true),
-    iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+    iOptions: IOSOptions(
+      accessibility: KeychainAccessibility.first_unlock_this_device,
+    ),
   );
 
   // ── Keys ─────────────────────────────────────────────────────────

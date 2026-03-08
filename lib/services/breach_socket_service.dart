@@ -3,11 +3,12 @@
 // Auto-reconnect with exponential backoff (1s → 30s max).
 // Broadcasts typed messages via per-channel streams.
 
-// CRIT-02 FIX: Auth token sent as query param on WS connect.
+// CRIT-01 FIX: Auth token sent as first-message after WS handshake (not URL).
 
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import '../config/api.dart';
 
@@ -80,12 +81,8 @@ class BreachSocketService {
   void _doConnect() {
     _cleanup();
 
-    var url = Api.ws;
-    // CRIT-02: Append auth token to WS URL
-    if (_apiKey.isNotEmpty) {
-      final sep = url.contains('?') ? '&' : '?';
-      url = '$url${sep}token=$_apiKey';
-    }
+    // CRIT-01 FIX: Connect without token in URL — auth via first message
+    final url = Api.ws;
 
     try {
       _channel = WebSocketChannel.connect(Uri.parse(url));
@@ -102,7 +99,13 @@ class BreachSocketService {
         },
         cancelOnError: false,
       );
-    } catch (_) {
+
+      // CRIT-01: Send auth as first message (not in URL/logs/proxies)
+      if (_apiKey.isNotEmpty) {
+        _send({'type': 'auth', 'token': _apiKey});
+      }
+    } catch (e) {
+      debugPrint('[WS] Connect error: $e');
       _setConnected(false);
       _scheduleReconnect();
     }
@@ -138,8 +141,8 @@ class BreachSocketService {
 
       // All other types: emit data payload
       _emit(type, json['data']);
-    } catch (_) {
-      // Malformed message — ignore
+    } catch (e) {
+      debugPrint('[WS] Malformed message: $e');
     }
   }
 
@@ -167,7 +170,9 @@ class BreachSocketService {
   void _send(Map<String, dynamic> msg) {
     try {
       _channel?.sink.add(jsonEncode(msg));
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[WS] Send error: $e');
+    }
   }
 
   // ── Connection state ──────────────────────────────────────────

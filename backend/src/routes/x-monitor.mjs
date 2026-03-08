@@ -7,6 +7,8 @@
 
 import { Router } from 'express';
 import { getXScraperStatus, pollXAccounts, getCachedTweets } from '../scrapers/x-scraper.mjs';
+import { requireAdmin } from '../middleware/auth.mjs';
+import { adminLimiter } from '../middleware/rate-limit.mjs';
 
 const router = Router();
 
@@ -14,7 +16,7 @@ router.get('/x/status', (_req, res) => {
   res.json(getXScraperStatus());
 });
 
-router.post('/x/poll', async (_req, res) => {
+router.post('/x/poll', requireAdmin, adminLimiter, async (_req, res) => {
   try {
     const tweets = await pollXAccounts();
     res.json({ ok: true, tweetsFound: tweets.length, tweets });

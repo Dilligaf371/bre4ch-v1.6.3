@@ -133,7 +133,7 @@ class PushNotificationService {
         try {
           _fcmToken = await _messaging.getToken()
               .timeout(const Duration(seconds: 10), onTimeout: () => null);
-          debugPrint('[FCM] Token attempt ${i + 1}: ${_fcmToken != null ? "obtained (${_fcmToken!.substring(0, 20)}...)" : "null"}');
+          debugPrint('[FCM] Token attempt ${i + 1}: ${_fcmToken != null ? "obtained (${_fcmToken?.substring(0, 20)}...)" : "null"}');
           if (_fcmToken != null) {
             await _secureStorage.setFcmToken(_fcmToken!);
             break;

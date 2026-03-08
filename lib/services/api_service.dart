@@ -141,8 +141,8 @@ class ApiService {
     Options? options,
   }) {
     final ttl = _ttlForUrl(url);
-    // HIGH-05: Sensitive endpoints get 1h max stale instead of 4h
-    final stale = _isSensitive(url) ? const Duration(hours: 1) : null;
+    // HIGH-05 FIX: Sensitive endpoints get 15min max stale instead of 4h
+    final stale = _isSensitive(url) ? const Duration(minutes: 15) : null;
 
     final cacheExtra = _cacheStore != null
         ? CacheOptions(

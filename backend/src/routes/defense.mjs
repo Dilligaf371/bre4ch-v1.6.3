@@ -15,6 +15,8 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { runDefenseScraper, getScraperStatus } from '../scrapers/defense-scraper.mjs';
+import { requireAdmin } from '../middleware/auth.mjs';
+import { adminLimiter } from '../middleware/rate-limit.mjs';
 
 const router = Router();
 
@@ -43,7 +45,7 @@ router.get('/defense/scraper', (_req, res) => {
 
 // ── POST /api/defense/scrape — manual trigger ────────────────────
 
-router.post('/defense/scrape', async (_req, res) => {
+router.post('/defense/scrape', requireAdmin, adminLimiter, async (_req, res) => {
   try {
     const result = await runDefenseScraper();
     res.json({ ok: true, ...result });

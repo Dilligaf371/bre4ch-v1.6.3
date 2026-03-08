@@ -61,7 +61,7 @@ class _EagerAlerts extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // This watch() forces the provider to initialize on first frame.
     final alertState = ref.watch(emergencyAlertsProvider);
-    print('[ALERTS] _EagerAlerts: ${alertState.activeCount} active, ${alertState.alerts.length} total');
+    debugPrint('[ALERTS] _EagerAlerts: ${alertState.activeCount} active, ${alertState.alerts.length} total');
     return child;
   }
 }
