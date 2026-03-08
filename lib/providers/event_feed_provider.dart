@@ -199,8 +199,8 @@ final Set<String> _officialGovHandles = _sourceUrls.keys
 // Country names are used ONLY in _detectTargetRegion for labeling.
 
 const List<String> _conflictTerms = [
-  // ── Core conflict terms (NO country names — too broad) ──
-  'israel', 'military', 'strike', 'missile', 'kill', 'attack', 'war',
+  // ── Core conflict terms ──
+  'iran', 'israel', 'military', 'strike', 'missile', 'kill', 'attack', 'war',
   'drone', 'bomb', 'nuclear', 'hezbollah', 'gaza', 'navy', 'air force',
   'centcom', 'intercept', 'defense', 'defence', 'houthi', 'yemen', 'lebanon',
   'coalition', 'nato', 'pentagon', 'pmf', 'irgc', 'quds',

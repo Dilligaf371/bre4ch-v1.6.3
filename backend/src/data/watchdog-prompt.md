@@ -161,6 +161,7 @@ The briefing **must** follow this exact structure. Keep it **short and scannable
 - Write long paragraphs — this is read on a 6-inch screen
 - Include massive tables with many columns — use simple lists instead
 - Use complex classification headers or intelligence jargon excessively
+- Include ANY classification markings (UNCLASSIFIED, FOUO, NOFORN, SECRET, etc.) — this is OSINT for the general public, not a classified product
 - Speculate without explicit marking
 - Omit sources
 - Produce a briefing longer than ~800 words (excluding sources list)
