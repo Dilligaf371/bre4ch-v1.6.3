@@ -7,6 +7,7 @@ enum DefenseSystemType {
   thaad,
   patriotPac3,
   patriotPac2,
+  patriotPac3Mse,
   arrowSystem,
   davidsSling,
   ironDome,
@@ -15,6 +16,8 @@ enum DefenseSystemType {
   hawk,
   hq9,
   aegis,
+  cheongungII,
+  barakER,
 }
 
 extension DefenseSystemLabel on DefenseSystemType {
@@ -42,6 +45,12 @@ extension DefenseSystemLabel on DefenseSystemType {
         return 'HQ-9';
       case DefenseSystemType.aegis:
         return 'AEGIS (SM-3/SM-6)';
+      case DefenseSystemType.cheongungII:
+        return 'CHEONGUNG-II (M-SAM)';
+      case DefenseSystemType.barakER:
+        return 'BARAK ER';
+      case DefenseSystemType.patriotPac3Mse:
+        return 'PATRIOT PAC-3 MSE';
     }
   }
 }
