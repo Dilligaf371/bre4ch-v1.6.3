@@ -60,6 +60,19 @@ class InterceptionStats {
     required this.totalIntercepted,
     required this.lastUpdated,
   });
+
+  factory InterceptionStats.fromJson(Map<String, dynamic> json) {
+    final ballistic = json['ballisticIntercepted'] as int? ?? 0;
+    final cruise = json['cruiseIntercepted'] as int? ?? 0;
+    final drone = json['droneIntercepted'] as int? ?? 0;
+    return InterceptionStats(
+      ballisticIntercepted: ballistic,
+      cruiseIntercepted: cruise,
+      droneIntercepted: drone,
+      totalIntercepted: json['totalIntercepted'] as int? ?? (ballistic + cruise + drone),
+      lastUpdated: json['lastUpdated'] as String? ?? '',
+    );
+  }
 }
 
 class AirDefenseSystem {
@@ -92,4 +105,23 @@ class AirDefenseSystem {
     this.baseName,
     required this.operator,
   });
+
+  /// Returns a copy with updated [InterceptionStats] (for dynamic API data).
+  AirDefenseSystem copyWith({InterceptionStats? stats}) {
+    return AirDefenseSystem(
+      id: id,
+      name: name,
+      country: country,
+      countryFlag: countryFlag,
+      systems: systems,
+      lat: lat,
+      lng: lng,
+      description: description,
+      stats: stats ?? this.stats,
+      sourceLabel: sourceLabel,
+      sourceUrl: sourceUrl,
+      baseName: baseName,
+      operator: operator,
+    );
+  }
 }

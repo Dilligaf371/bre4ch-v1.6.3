@@ -13,6 +13,13 @@ enum MissileSiteType {
   spaceAndMissile,
   underground,
   proxyForward,
+  leadershipCommand,
+  nuclearFacility,
+  airBase,
+  navalBase,
+  defenseIndustry,
+  droneBase,
+  radarSam,
 }
 
 class MissileSite {
@@ -87,6 +94,20 @@ extension MissileSiteTypeLabel on MissileSiteType {
         return 'UNDERGROUND';
       case MissileSiteType.proxyForward:
         return 'PROXY / FORWARD';
+      case MissileSiteType.leadershipCommand:
+        return 'LEADERSHIP / C2';
+      case MissileSiteType.nuclearFacility:
+        return 'NUCLEAR';
+      case MissileSiteType.airBase:
+        return 'AIR BASE';
+      case MissileSiteType.navalBase:
+        return 'NAVAL BASE';
+      case MissileSiteType.defenseIndustry:
+        return 'DEFENSE INDUSTRY';
+      case MissileSiteType.droneBase:
+        return 'DRONE / UAV';
+      case MissileSiteType.radarSam:
+        return 'RADAR / SAM';
     }
   }
 }

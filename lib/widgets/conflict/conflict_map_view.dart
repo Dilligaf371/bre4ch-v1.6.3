@@ -1,32 +1,34 @@
 // =============================================================================
 // BRE4CH - Conflict Map View
-// Interactive map with Iranian missile sites + GCC air defense layers
+// Interactive map with Iranian strike targets + GCC air defense layers
 // Pattern: evac_screen.dart FlutterMap implementation
+// Dynamic interception stats via defenseStatsProvider
 // =============================================================================
 
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import '../../config/theme.dart';
 import '../../data/missile_sites.dart';
-import '../../data/air_defense_systems.dart';
 import '../../models/missile_site.dart';
 import '../../models/air_defense_system.dart';
+import '../../providers/defense_stats_provider.dart';
 import '../../services/cached_tile_provider.dart';
 import '../../widgets/common/filter_chip_row.dart';
 import 'missile_site_sheet.dart';
 import 'air_defense_sheet.dart';
 import 'conflict_map_legend.dart';
 
-class ConflictMapView extends StatefulWidget {
+class ConflictMapView extends ConsumerStatefulWidget {
   const ConflictMapView({super.key});
 
   @override
-  State<ConflictMapView> createState() => _ConflictMapViewState();
+  ConsumerState<ConflictMapView> createState() => _ConflictMapViewState();
 }
 
-class _ConflictMapViewState extends State<ConflictMapView> {
+class _ConflictMapViewState extends ConsumerState<ConflictMapView> {
   final MapController _mapController = MapController();
 
   // Layer visibility
@@ -50,6 +52,10 @@ class _ConflictMapViewState extends State<ConflictMapView> {
 
   @override
   Widget build(BuildContext context) {
+    // Watch defense stats provider for dynamic interception data
+    final defenseState = ref.watch(defenseStatsProvider);
+    final mergedSystems = defenseState.mergedSystems;
+
     return Column(
       children: [
         // Layer toggles
@@ -58,7 +64,7 @@ class _ConflictMapViewState extends State<ConflictMapView> {
           child: Row(
             children: [
               _buildLayerChip(
-                'MISSILE SITES',
+                'STRIKE TARGETS',
                 Icons.rocket_launch,
                 NatoColors.hostile,
                 _showMissileSites,
@@ -125,7 +131,7 @@ class _ConflictMapViewState extends State<ConflictMapView> {
                       retinaMode: true,
                       tileProvider: createCachedTileProvider(),
                     ),
-                    MarkerLayer(markers: _buildAllMarkers()),
+                    MarkerLayer(markers: _buildAllMarkers(mergedSystems)),
                   ],
                 ),
 
@@ -153,11 +159,11 @@ class _ConflictMapViewState extends State<ConflictMapView> {
                   ),
                 ),
 
-                // Stats summary
+                // Stats summary (uses dynamic data)
                 Positioned(
                   top: 8,
                   right: 8,
-                  child: _buildStatsSummary(),
+                  child: _buildStatsSummary(defenseState),
                 ),
               ],
             ),
@@ -169,7 +175,7 @@ class _ConflictMapViewState extends State<ConflictMapView> {
 
   // ── Stats summary overlay ────────────────────────────────────────
 
-  Widget _buildStatsSummary() {
+  Widget _buildStatsSummary(DefenseStatsState defenseState) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
@@ -188,7 +194,7 @@ class _ConflictMapViewState extends State<ConflictMapView> {
                 Icon(Icons.rocket_launch, size: 10, color: NatoColors.hostile),
                 const SizedBox(width: 4),
                 Text(
-                  '$missileSitesTotal SITES',
+                  '$missileSitesTotal TARGETS',
                   style: AppTextStyles.mono(size: 9, weight: FontWeight.w600, color: NatoColors.hostile),
                 ),
               ],
@@ -208,11 +214,26 @@ class _ConflictMapViewState extends State<ConflictMapView> {
                 Icon(Icons.shield, size: 10, color: NatoColors.friendly),
                 const SizedBox(width: 4),
                 Text(
-                  '$totalInterceptionsAllCoalition INTERCEPTS',
+                  '${defenseState.totalInterceptions} INTERCEPTS',
                   style: AppTextStyles.mono(size: 9, weight: FontWeight.w600, color: NatoColors.friendly),
                 ),
               ],
             ),
+            if (defenseState.loaded)
+              Padding(
+                padding: const EdgeInsets.only(top: 1),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.wifi, size: 7, color: StatusColors.active),
+                    const SizedBox(width: 3),
+                    Text(
+                      'LIVE',
+                      style: AppTextStyles.mono(size: 7, weight: FontWeight.w700, color: StatusColors.active),
+                    ),
+                  ],
+                ),
+              ),
           ],
         ],
       ),
@@ -259,7 +280,7 @@ class _ConflictMapViewState extends State<ConflictMapView> {
 
   // ── Marker builders ──────────────────────────────────────────────
 
-  List<Marker> _buildAllMarkers() {
+  List<Marker> _buildAllMarkers(List<AirDefenseSystem> mergedSystems) {
     final markers = <Marker>[];
 
     if (_showMissileSites) {
@@ -269,7 +290,7 @@ class _ConflictMapViewState extends State<ConflictMapView> {
     }
 
     if (_showAirDefense) {
-      for (final system in _filteredAirDefenseSystems()) {
+      for (final system in _filteredAirDefenseSystems(mergedSystems)) {
         markers.add(_buildAirDefenseMarker(system));
       }
     }
@@ -284,9 +305,11 @@ class _ConflictMapViewState extends State<ConflictMapView> {
     }).toList();
   }
 
-  List<AirDefenseSystem> _filteredAirDefenseSystems() {
-    if (_defenseCountryFilter.contains('ALL')) return coalitionAirDefense;
-    return coalitionAirDefense.where((system) {
+  List<AirDefenseSystem> _filteredAirDefenseSystems(
+    List<AirDefenseSystem> systems,
+  ) {
+    if (_defenseCountryFilter.contains('ALL')) return systems;
+    return systems.where((system) {
       return _defenseCountryFilter.contains(system.country);
     }).toList();
   }

@@ -38,6 +38,7 @@ class Api {
   static String get notificationsTest => '$base/api/notifications/test';
   static String get notificationsStatus => '$base/api/notifications/status';
   static String get instagramFeed => '$base/api/instagram/feed';
+  static String get defenseStats => '$base/api/defense/stats';
 }
 
 // ── Poll Intervals (ms) ──────────────────────────────────────────
@@ -55,6 +56,7 @@ class PollIntervals {
   static const Duration centcom = Duration(seconds: 60);
   static const Duration airports = Duration(seconds: 90);
   static const Duration instagram = Duration(seconds: 60);
+  static const Duration defenseStats = Duration(seconds: 120);
 }
 
 // ── Cache TTL per endpoint ───────────────────────────────────────
@@ -71,5 +73,6 @@ class CacheTtl {
   static const Duration cyber = Duration(minutes: 10);
   static const Duration stats = Duration(minutes: 5);
   static const Duration instagram = Duration(minutes: 2);
+  static const Duration defenseStats = Duration(minutes: 5);
   static const Duration defaultTtl = Duration(minutes: 5);
 }
