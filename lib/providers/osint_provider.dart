@@ -16,11 +16,10 @@ import '../services/breach_socket_service.dart';
 import '../config/api.dart';
 
 // ── Persistence constants ────────────────────────────────────────
-const String _osintCacheKey = 'osint_cache_v1';
-/// Retention covers from the start of the conflict (Oct 2023) to present.
-/// Using 600 days to ensure all historical data is preserved.
-const int _retentionDays = 600;
-const int _maxCachedItems = 10000;
+const String _osintCacheKey = 'osint_cache_v2';
+/// Only keep J (today) and J-1 (yesterday). Older articles are irrelevant.
+const int _retentionDays = 2;
+const int _maxCachedItems = 500;
 
 // ── Source config ────────────────────────────────────────────────
 
@@ -89,6 +88,14 @@ const Map<String, OsintSource> sourceMap = {
   'Jerusalem Post': OsintSource.jpost, 'JPost': OsintSource.jpost, 'jpost': OsintSource.jpost,
 };
 
+// ── Date gate ────────────────────────────────────────────────────
+/// Cutoff timestamp (J-1 midnight). Any item older than this is discarded.
+int _recentCutoffMs() =>
+    DateTime.now().subtract(const Duration(days: _retentionDays)).millisecondsSinceEpoch;
+
+/// Returns true if [timestampMs] is within the J / J-1 window.
+bool _isRecent(int timestampMs) => timestampMs >= _recentCutoffMs();
+
 // ── Helpers ──────────────────────────────────────────────────────
 
 final _rng = Random();
@@ -99,11 +106,23 @@ String _randomId(String prefix) {
   return '$prefix-$ts-$r';
 }
 
-OsintItem liveHeadlineToOsint(Map<String, dynamic> h) {
+/// Converts a raw headline map to [OsintItem], or returns `null` if the
+/// article's pubDate is older than J-1 (yesterday).
+OsintItem? liveHeadlineToOsint(Map<String, dynamic> h) {
   final title = h['title'] as String? ?? '';
   final link = h['link'] as String? ?? '';
   final pubDate = h['pubDate'] as String? ?? '';
   final src = h['source'] as String? ?? '';
+
+  // ── Date gate: reject articles older than J-1 ──────────────────
+  int ts = DateTime.now().millisecondsSinceEpoch;
+  if (pubDate.isNotEmpty) {
+    final parsed = DateTime.tryParse(pubDate);
+    if (parsed != null) {
+      ts = parsed.millisecondsSinceEpoch;
+      if (!_isRecent(ts)) return null; // Too old — discard
+    }
+  }
 
   final source = sourceMap[src] ?? OsintSource.reuters;
 
@@ -134,12 +153,6 @@ OsintItem liveHeadlineToOsint(Map<String, dynamic> h) {
   else if (lower.contains('centcom') || lower.contains('pentagon') || lower.contains('washington')) region = 'USA';
   else if (lower.contains('britain') || lower.contains('uk ')) region = 'UK';
   else if (lower.contains('france') || lower.contains('french')) region = 'France';
-
-  int ts = DateTime.now().millisecondsSinceEpoch;
-  if (pubDate.isNotEmpty) {
-    final parsed = DateTime.tryParse(pubDate);
-    if (parsed != null) ts = parsed.millisecondsSinceEpoch;
-  }
 
   return OsintItem(
     id: _randomId('live'),
@@ -271,12 +284,15 @@ class OsintNotifier extends StateNotifier<List<OsintItem>> {
           final m = raw as Map<String, dynamic>;
           final id = m['id'] as String? ?? '';
           if (id.isEmpty || !_seenIds.add(id)) continue;
+          final ts = m['timestamp'] as int? ?? DateTime.now().millisecondsSinceEpoch;
+          // Date gate: skip items older than J-1
+          if (!_isRecent(ts)) continue;
           final item = OsintItem(
             id: id,
             source: _mapOsintSource(m['source'] as String? ?? ''),
             title: m['title'] as String? ?? '',
             summary: m['summary'] as String? ?? '',
-            timestamp: m['timestamp'] as int? ?? DateTime.now().millisecondsSinceEpoch,
+            timestamp: ts,
             priority: _mapPriority(m['priority'] as String? ?? 'routine'),
             region: m['region'] as String? ?? 'Middle East',
             url: m['url'] as String?,
@@ -294,13 +310,16 @@ class OsintNotifier extends StateNotifier<List<OsintItem>> {
         final m = data as Map<String, dynamic>;
         final id = m['id'] as String? ?? '';
         if (id.isEmpty || !_seenIds.add(id)) return;
+        final ts = m['timestamp'] as int? ?? DateTime.now().millisecondsSinceEpoch;
+        // Date gate: skip items older than J-1
+        if (!_isRecent(ts)) return;
 
         final item = OsintItem(
           id: id,
           source: _mapOsintSource(m['source'] as String? ?? ''),
           title: m['title'] as String? ?? '',
           summary: m['summary'] as String? ?? '',
-          timestamp: m['timestamp'] as int? ?? DateTime.now().millisecondsSinceEpoch,
+          timestamp: ts,
           priority: _mapPriority(m['priority'] as String? ?? 'routine'),
           region: m['region'] as String? ?? 'Middle East',
           url: m['url'] as String?,
@@ -336,8 +355,14 @@ class OsintNotifier extends StateNotifier<List<OsintItem>> {
     }).toList();
     if (newItems.isEmpty) return;
 
-    final osintItems = newItems.map((h) => liveHeadlineToOsint(h as Map<String, dynamic>)).toList();
-    for (final item in osintItems) { _injected.add(item.title); }
+    final osintItems = <OsintItem>[];
+    for (final h in newItems) {
+      final item = liveHeadlineToOsint(h as Map<String, dynamic>);
+      if (item != null) {
+        _injected.add(item.title);
+        osintItems.add(item);
+      }
+    }
     _mergeAndUpdate(osintItems);
   }
 
@@ -357,8 +382,14 @@ class OsintNotifier extends StateNotifier<List<OsintItem>> {
         return title.isNotEmpty && !_injected.contains(title);
       }).toList();
       if (newItems.isEmpty) return;
-      final osintItems = newItems.map(liveHeadlineToOsint).toList();
-      for (final item in osintItems) { _injected.add(item.title); }
+      final osintItems = <OsintItem>[];
+      for (final h in newItems) {
+        final item = liveHeadlineToOsint(h);
+        if (item != null) {
+          _injected.add(item.title);
+          osintItems.add(item);
+        }
+      }
       _mergeAndUpdate(osintItems);
     } catch (_) {}
   }
@@ -367,7 +398,12 @@ class OsintNotifier extends StateNotifier<List<OsintItem>> {
     try {
       final briefings = await CentcomService.instance.fetchBriefings();
       if (briefings.isEmpty || !mounted) return;
-      final newItems = briefings.where((b) => !_injected.contains(b.title)).toList();
+      final newItems = briefings.where((b) {
+        if (_injected.contains(b.title)) return false;
+        // Date gate: reject briefings older than J-1
+        final tsMs = b.timestamp * 1000;
+        return _isRecent(tsMs);
+      }).toList();
       if (newItems.isEmpty) return;
       final osintItems = newItems.map((b) => OsintItem(
         id: _randomId('centcom'),
