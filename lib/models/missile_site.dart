@@ -33,8 +33,9 @@ class MissileSite {
   final String country;        // 'IR', 'SY', 'YE'
   final String operator;       // 'IRGC-ASF', 'Houthi', etc.
   final String description;
-  final String sourceLabel;    // e.g. 'CENTCOM [A1]'
+  final String sourceLabel;    // e.g. 'CENTCOM — 1 Mar 2026'
   final String sourceUrl;
+  final DateTime sourceDate;   // Publication date+time (UTC) of the source
   final String? photoUrl;
   final String? photoCaption;
   final String? lastStrikeDate;
@@ -53,11 +54,31 @@ class MissileSite {
     required this.description,
     required this.sourceLabel,
     required this.sourceUrl,
+    required this.sourceDate,
     this.photoUrl,
     this.photoCaption,
     this.lastStrikeDate,
     this.strikeDetails,
   });
+
+  /// Human-readable "time ago" from [sourceDate].
+  String get sourceAgo {
+    final diff = DateTime.now().toUtc().difference(sourceDate);
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    return '${diff.inDays}d ago';
+  }
+
+  /// Formatted source timestamp: "1 MAR 2026 · 06:15 UTC"
+  String get sourceTimestamp {
+    const months = [
+      '', 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
+      'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC',
+    ];
+    final h = sourceDate.hour.toString().padLeft(2, '0');
+    final m = sourceDate.minute.toString().padLeft(2, '0');
+    return '${sourceDate.day} ${months[sourceDate.month]} ${sourceDate.year} · $h:$m UTC';
+  }
 }
 
 // ── Status labels ──────────────────────────────────────────────────

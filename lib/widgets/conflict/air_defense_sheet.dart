@@ -115,12 +115,25 @@ void showAirDefenseSheet(BuildContext context, AirDefenseSystem system) {
 
             const SizedBox(height: 16),
 
-            // Source link
+            // Source link + timestamp
             _sourceButton(
               icon: Icons.verified,
               label: 'SRC: ${system.sourceLabel}',
               color: Palantir.accent,
               onTap: () => _openUrl(system.sourceUrl),
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Icon(Icons.schedule, size: 10, color: Palantir.textMuted),
+                const SizedBox(width: 4),
+                Text(
+                  '${system.sourceTimestamp} (${system.sourceAgo})',
+                  style: AppTextStyles.mono(
+                    size: 9, color: Palantir.textMuted,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
           ],

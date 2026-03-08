@@ -146,12 +146,25 @@ void showMissileSiteSheet(BuildContext context, MissileSite site) {
 
             const SizedBox(height: 16),
 
-            // Source link
+            // Source link + timestamp
             _sourceButton(
               icon: Icons.verified,
               label: 'SRC: ${site.sourceLabel}',
               color: Palantir.accent,
               onTap: () => _openUrl(site.sourceUrl),
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Icon(Icons.schedule, size: 10, color: Palantir.textMuted),
+                const SizedBox(width: 4),
+                Text(
+                  '${site.sourceTimestamp} (${site.sourceAgo})',
+                  style: AppTextStyles.mono(
+                    size: 9, color: Palantir.textMuted,
+                  ),
+                ),
+              ],
             ),
 
             // Satellite imagery link

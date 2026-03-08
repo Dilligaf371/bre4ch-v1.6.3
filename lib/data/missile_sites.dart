@@ -8,7 +8,7 @@
 
 import '../models/missile_site.dart';
 
-const List<MissileSite> iranianMissileSites = [
+final List<MissileSite> iranianMissileSites = [
   // ═══════════════════════════════════════════════════════════════════
   // CATEGORY 1 — LEADERSHIP / COMMAND & CONTROL (3 targets)
   // ═══════════════════════════════════════════════════════════════════
@@ -29,6 +29,7 @@ const List<MissileSite> iranianMissileSites = [
         'Destroyed in IAF/USAF precision strike D+1.',
     sourceLabel: 'CENTCOM / IDF [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
         'Combined IAF F-35I and USAF B-2 strike. Command bunker penetrated '
@@ -51,6 +52,7 @@ const List<MissileSite> iranianMissileSites = [
         'Administrative complex struck D+2.',
     sourceLabel: 'CENTCOM [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 2, 6, 15),
     lastStrikeDate: '2026-03-02',
     strikeDetails:
         'USAF JDAM/JSOW strike package. Main administrative buildings '
@@ -73,6 +75,7 @@ const List<MissileSite> iranianMissileSites = [
         'after Tehran HQ destruction.',
     sourceLabel: 'CENTCOM [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 4, 6, 15),
     lastStrikeDate: '2026-03-04',
     strikeDetails:
         'USN TLAM salvo from USS Bataan CSG. Deep bunker assessed '
@@ -101,6 +104,7 @@ const List<MissileSite> iranianMissileSites = [
         'Multiple TEL garages identified via commercial satellite imagery.',
     sourceLabel: 'CSIS Missile Threat [A2]',
     sourceUrl: 'https://missilethreat.csis.org/country/iran/',
+    sourceDate: DateTime.utc(2026, 3, 5, 12, 0),
   ),
 
   MissileSite(
@@ -119,6 +123,7 @@ const List<MissileSite> iranianMissileSites = [
         'corridor. Hardened shelters detected in 2024 Maxar imagery.',
     sourceLabel: 'CSIS [A2]',
     sourceUrl: 'https://missilethreat.csis.org/country/iran/',
+    sourceDate: DateTime.utc(2026, 3, 5, 12, 0),
   ),
 
   MissileSite(
@@ -137,6 +142,7 @@ const List<MissileSite> iranianMissileSites = [
         'with missile assembly tunnels.',
     sourceLabel: 'CSIS / Planet Labs [A2]',
     sourceUrl: 'https://missilethreat.csis.org/country/iran/',
+    sourceDate: DateTime.utc(2026, 3, 5, 12, 0),
   ),
 
   MissileSite(
@@ -155,6 +161,7 @@ const List<MissileSite> iranianMissileSites = [
         'stands and telemetry equipment visible on satellite.',
     sourceLabel: 'CSIS [A2]',
     sourceUrl: 'https://missilethreat.csis.org/country/iran/',
+    sourceDate: DateTime.utc(2026, 3, 5, 12, 0),
   ),
 
   MissileSite(
@@ -173,6 +180,7 @@ const List<MissileSite> iranianMissileSites = [
         'provides natural hardening.',
     sourceLabel: 'CSIS [A2]',
     sourceUrl: 'https://missilethreat.csis.org/country/iran/',
+    sourceDate: DateTime.utc(2026, 3, 5, 12, 0),
   ),
 
   MissileSite(
@@ -191,6 +199,7 @@ const List<MissileSite> iranianMissileSites = [
         'and Strait of Hormuz.',
     sourceLabel: 'CENTCOM [A2]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 5, 12, 0),
   ),
 
   MissileSite(
@@ -209,6 +218,7 @@ const List<MissileSite> iranianMissileSites = [
         'Shahab-3 and Ghadr-1 MRBMs.',
     sourceLabel: 'CSIS [B2]',
     sourceUrl: 'https://missilethreat.csis.org/country/iran/',
+    sourceDate: DateTime.utc(2026, 3, 5, 12, 0),
   ),
 
   // ── Destroyed ──────────────────────────────────────────────────
@@ -229,6 +239,7 @@ const List<MissileSite> iranianMissileSites = [
         'BDA confirmed total destruction of above-ground structures.',
     sourceLabel: 'CENTCOM BDA [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 2, 6, 15),
     lastStrikeDate: '2026-03-02',
     strikeDetails:
         'Coalition TLAM + PGM strike. 12 aim points neutralized. '
@@ -251,6 +262,7 @@ const List<MissileSite> iranianMissileSites = [
         'again in IAF/USAF coordinated strike.',
     sourceLabel: 'IDF / CENTCOM [A1]',
     sourceUrl: 'https://www.idf.il/en/',
+    sourceDate: DateTime.utc(2026, 3, 2, 6, 15),
     lastStrikeDate: '2026-03-02',
     strikeDetails:
         'IAF F-35I precision strike with USAF SEAD support. '
@@ -272,6 +284,7 @@ const List<MissileSite> iranianMissileSites = [
         'Used in Oct 2024 salvo against Israel. Struck in initial wave.',
     sourceLabel: 'IDF / CENTCOM [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
         'IAF long-range strike with USAF aerial refueling support. '
@@ -294,6 +307,7 @@ const List<MissileSite> iranianMissileSites = [
         'Coalition strikes targeting Tehran-area missile infrastructure.',
     sourceLabel: 'CENTCOM BDA [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
         'USAF B-2 Spirit strike with JDAM GPS-guided munitions. '
@@ -318,6 +332,7 @@ const List<MissileSite> iranianMissileSites = [
         'but underground production tunnels may remain operational.',
     sourceLabel: 'CENTCOM BDA [A2]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 3, 6, 15),
     lastStrikeDate: '2026-03-03',
     strikeDetails:
         'USN TLAM salvo from USS Bataan CSG. Surface buildings destroyed. '
@@ -340,6 +355,7 @@ const List<MissileSite> iranianMissileSites = [
         'Launch pads struck but mobile TELs may have dispersed.',
     sourceLabel: 'CENTCOM [A2]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 4, 6, 15),
     lastStrikeDate: '2026-03-04',
     strikeDetails:
         'USAF B-2 strike on launch pads and fuel storage. '
@@ -362,6 +378,7 @@ const List<MissileSite> iranianMissileSites = [
         'mobile TELs assessed dispersed into urban areas.',
     sourceLabel: 'CENTCOM [A2]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 5, 6, 15),
     lastStrikeDate: '2026-03-05',
     strikeDetails:
         'USN carrier air wing strike from USS Eisenhower. Fuel storage '
@@ -386,6 +403,7 @@ const List<MissileSite> iranianMissileSites = [
         'Assessed hardened against conventional strikes. Status unknown.',
     sourceLabel: 'CSIS / IRGC footage [B3]',
     sourceUrl: 'https://missilethreat.csis.org/country/iran/',
+    sourceDate: DateTime.utc(2026, 3, 5, 12, 0),
   ),
 
   // ═══════════════════════════════════════════════════════════════════
@@ -408,6 +426,7 @@ const List<MissileSite> iranianMissileSites = [
         'halls destroyed. Underground centrifuge cascade status uncertain.',
     sourceLabel: 'CENTCOM / IAEA [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 2, 6, 15),
     lastStrikeDate: '2026-03-02',
     strikeDetails:
         'USAF B-2 strike with GBU-57 MOP bunker busters. Surface facilities '
@@ -431,6 +450,7 @@ const List<MissileSite> iranianMissileSites = [
         'Multiple B-2 sorties attempted — BDA inconclusive.',
     sourceLabel: 'CENTCOM / IAEA [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 3, 6, 15),
     lastStrikeDate: '2026-03-03',
     strikeDetails:
         'Multiple B-2 sorties with GBU-57 MOP. Tunnel entrances collapsed. '
@@ -453,6 +473,7 @@ const List<MissileSite> iranianMissileSites = [
         'Chemical processing buildings destroyed.',
     sourceLabel: 'CENTCOM [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 3, 6, 15),
     lastStrikeDate: '2026-03-03',
     strikeDetails:
         'USN TLAM salvo. Chemical processing lines destroyed. '
@@ -475,6 +496,7 @@ const List<MissileSite> iranianMissileSites = [
         'Reactor building and cooling towers destroyed.',
     sourceLabel: 'CENTCOM / IAEA [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 2, 6, 15),
     lastStrikeDate: '2026-03-02',
     strikeDetails:
         'IAF/USAF coordinated strike. Reactor vessel penetrated. '
@@ -502,6 +524,7 @@ const List<MissileSite> iranianMissileSites = [
         'Runway, HAS, and ATC tower destroyed.',
     sourceLabel: 'CENTCOM BDA [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
         'USAF F-22 + F-15E SEAD/DEAD followed by TLAM salvos. All '
@@ -525,6 +548,7 @@ const List<MissileSite> iranianMissileSites = [
         'may have dispersed to highway strips.',
     sourceLabel: 'CENTCOM [A2]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
         'USAF cruise missile strike. Runway cratered, HAS struck. '
@@ -548,6 +572,7 @@ const List<MissileSite> iranianMissileSites = [
         'maintenance facilities destroyed.',
     sourceLabel: 'CENTCOM BDA [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
         'USN carrier air wing strike from USS Eisenhower. 3 F-4E '
@@ -570,6 +595,7 @@ const List<MissileSite> iranianMissileSites = [
         'Civilian terminal spared.',
     sourceLabel: 'CENTCOM [A2]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 2, 6, 15),
     lastStrikeDate: '2026-03-02',
     strikeDetails:
         'Precision JDAM strike on military-only infrastructure. '
@@ -592,6 +618,7 @@ const List<MissileSite> iranianMissileSites = [
         'Complete destruction of all military infrastructure.',
     sourceLabel: 'CENTCOM BDA [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
         'USAF B-2 + F-15E combined strike. All HAS, runway, fuel storage '
@@ -615,6 +642,7 @@ const List<MissileSite> iranianMissileSites = [
         'denial operations.',
     sourceLabel: 'CENTCOM BDA [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
         'USN/USAF combined strike. Runway cratered, all HAS destroyed, '
@@ -637,6 +665,7 @@ const List<MissileSite> iranianMissileSites = [
         'Complete destruction confirmed.',
     sourceLabel: 'CENTCOM BDA [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
         'USN TLAM salvo from Arabian Gulf destroyers. All aircraft shelters, '
@@ -663,6 +692,7 @@ const List<MissileSite> iranianMissileSites = [
         'adjacent. Port facilities partially damaged.',
     sourceLabel: 'CENTCOM / NAVCENT [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 2, 6, 15),
     lastStrikeDate: '2026-03-02',
     strikeDetails:
         'USN Harpoon and TLAM strikes. IRGCN fast-boat pens destroyed. '
@@ -686,6 +716,7 @@ const List<MissileSite> iranianMissileSites = [
         'Complete destruction of naval pens and missile storage.',
     sourceLabel: 'CENTCOM BDA [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
         'USN carrier air wing + TLAM. All ASCM launchers destroyed. '
@@ -708,6 +739,7 @@ const List<MissileSite> iranianMissileSites = [
         'support facilities.',
     sourceLabel: 'CENTCOM [A2]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 3, 6, 15),
     lastStrikeDate: '2026-03-03',
     strikeDetails:
         'USN TLAM strike. Pier and maintenance facilities damaged. '
@@ -730,6 +762,7 @@ const List<MissileSite> iranianMissileSites = [
         'infrastructure — precision strikes only on military targets.',
     sourceLabel: 'CENTCOM [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 2, 6, 15),
     lastStrikeDate: '2026-03-02',
     strikeDetails:
         'Precision JSOW + SDB strike from USAF F-15E. Naval pens and '
@@ -756,6 +789,7 @@ const List<MissileSite> iranianMissileSites = [
         'Coordinates with IRGC fast-boat swarms. Mobile launchers redeployed.',
     sourceLabel: 'CENTCOM [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 5, 12, 0),
   ),
 
   MissileSite(
@@ -774,6 +808,7 @@ const List<MissileSite> iranianMissileSites = [
         'Coordinates with Jask naval base.',
     sourceLabel: 'CENTCOM [A2]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 5, 12, 0),
   ),
 
   // ═══════════════════════════════════════════════════════════════════
@@ -796,6 +831,7 @@ const List<MissileSite> iranianMissileSites = [
         'Previously linked to undeclared nuclear research.',
     sourceLabel: 'CENTCOM / IAEA [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 2, 6, 15),
     lastStrikeDate: '2026-03-02',
     strikeDetails:
         'USAF JDAM strike. R&D buildings and test laboratories destroyed. '
@@ -818,6 +854,7 @@ const List<MissileSite> iranianMissileSites = [
         'components for Bavar-373 and S-300 radar integration.',
     sourceLabel: 'CENTCOM BDA [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 3, 6, 15),
     lastStrikeDate: '2026-03-03',
     strikeDetails:
         'USN TLAM + USAF SDB strike. Production lines destroyed. '
@@ -840,6 +877,7 @@ const List<MissileSite> iranianMissileSites = [
         'Fabrication and final assembly facility.',
     sourceLabel: 'CENTCOM / CSIS [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 2, 6, 15),
     lastStrikeDate: '2026-03-02',
     strikeDetails:
         'IAF/USAF coordinated strike. All assembly buildings destroyed. '
@@ -862,6 +900,7 @@ const List<MissileSite> iranianMissileSites = [
         'tunnels may remain intact.',
     sourceLabel: 'CENTCOM / IAEA [A2]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 4, 6, 15),
     lastStrikeDate: '2026-03-04',
     strikeDetails:
         'USAF strike on surface buildings. Underground tunnel entrances '
@@ -888,6 +927,7 @@ const List<MissileSite> iranianMissileSites = [
         'Key node for drone supply to Russia and proxy groups.',
     sourceLabel: 'CENTCOM / ISW [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
         'USAF B-2 strike. Production halls, drone storage, and launch '
@@ -911,6 +951,7 @@ const List<MissileSite> iranianMissileSites = [
         'struck but some facilities may remain operational.',
     sourceLabel: 'CENTCOM [A2]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 4, 6, 15),
     lastStrikeDate: '2026-03-04',
     strikeDetails:
         'USAF JDAM/JSOW strike. Main assembly hangar and runway destroyed. '
@@ -933,6 +974,7 @@ const List<MissileSite> iranianMissileSites = [
         'Destroyed alongside the main air base.',
     sourceLabel: 'CENTCOM BDA [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
         'Destroyed in same strike package as Isfahan/Khatami AFB. '
@@ -959,6 +1001,7 @@ const List<MissileSite> iranianMissileSites = [
         'radars and command vehicles destroyed in SEAD/DEAD campaign.',
     sourceLabel: 'CENTCOM BDA [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
         'USAF F-22 / EA-18G SEAD package. AGM-88G AARGM-ER destroyed '
@@ -982,6 +1025,7 @@ const List<MissileSite> iranianMissileSites = [
         'Early warning radar co-located.',
     sourceLabel: 'CENTCOM / IDF [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
         'IAF F-35I launched AGM-142 Popeye stand-off. Engagement radars '
@@ -1004,6 +1048,7 @@ const List<MissileSite> iranianMissileSites = [
         'Coalition aircraft.',
     sourceLabel: 'CENTCOM BDA [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
         'USN EA-18G Growler SEAD + F/A-18E/F DEAD. All S-300 launchers '
@@ -1026,6 +1071,7 @@ const List<MissileSite> iranianMissileSites = [
         'produced air defense system.',
     sourceLabel: 'CENTCOM / IDF [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
         'First engagement of Bavar-373 in combat. System fired 2 missiles '
@@ -1049,6 +1095,7 @@ const List<MissileSite> iranianMissileSites = [
         'Critical node for Iranian IADS — Strait of Hormuz coverage.',
     sourceLabel: 'CENTCOM BDA [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
         'USN TLAM first salvo target. Ghadir phased-array radar and all '
@@ -1076,6 +1123,7 @@ const List<MissileSite> iranianMissileSites = [
         'storage confirmed by Israeli intelligence.',
     sourceLabel: 'CENTCOM / IDF [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails: 'Coalition airstrikes destroyed weapons storage facilities.',
   ),
@@ -1096,6 +1144,7 @@ const List<MissileSite> iranianMissileSites = [
         'eastern Syria and intelligence gathering.',
     sourceLabel: 'CENTCOM / IDF [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
         'IAF precision strike. IRGC drone hangars and arms depot destroyed. '
@@ -1118,6 +1167,7 @@ const List<MissileSite> iranianMissileSites = [
         'and Red Sea shipping. Iranian-supplied components.',
     sourceLabel: 'CENTCOM [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 5, 12, 0),
   ),
 
   MissileSite(
@@ -1136,6 +1186,7 @@ const List<MissileSite> iranianMissileSites = [
         'retaliatory strikes after attacks on USS Gravely.',
     sourceLabel: 'CENTCOM [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 5, 6, 15),
     lastStrikeDate: '2026-03-05',
     strikeDetails:
         'USN Tomahawk + carrier air wing strikes destroyed radar, '
@@ -1158,6 +1209,7 @@ const List<MissileSite> iranianMissileSites = [
         'Mountain cave storage.',
     sourceLabel: 'CENTCOM [A1]',
     sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceDate: DateTime.utc(2026, 3, 6, 6, 15),
     lastStrikeDate: '2026-03-06',
     strikeDetails:
         'USAF B-1B strike with JASSM-ER stand-off munitions. '

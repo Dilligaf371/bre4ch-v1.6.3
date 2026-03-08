@@ -94,8 +94,9 @@ class AirDefenseSystem {
   final double lng;
   final String description;
   final InterceptionStats stats;
-  final String sourceLabel;     // e.g. 'MOD UAE [A2]'
+  final String sourceLabel;     // e.g. '@modgovae (X) — 7 Mar 2026'
   final String sourceUrl;
+  final DateTime sourceDate;    // Publication date+time (UTC) of the source
   final String? baseName;       // Military base name
   final String operator;        // 'UAE Armed Forces', 'US CENTCOM', 'IDF', etc.
 
@@ -111,9 +112,29 @@ class AirDefenseSystem {
     required this.stats,
     required this.sourceLabel,
     required this.sourceUrl,
+    required this.sourceDate,
     this.baseName,
     required this.operator,
   });
+
+  /// Human-readable "time ago" from [sourceDate].
+  String get sourceAgo {
+    final diff = DateTime.now().toUtc().difference(sourceDate);
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    return '${diff.inDays}d ago';
+  }
+
+  /// Formatted source timestamp: "7 MAR 2026 · 14:22 UTC"
+  String get sourceTimestamp {
+    const months = [
+      '', 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
+      'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC',
+    ];
+    final h = sourceDate.hour.toString().padLeft(2, '0');
+    final m = sourceDate.minute.toString().padLeft(2, '0');
+    return '${sourceDate.day} ${months[sourceDate.month]} ${sourceDate.year} · $h:$m UTC';
+  }
 
   /// Returns a copy with updated [InterceptionStats] (for dynamic API data).
   AirDefenseSystem copyWith({InterceptionStats? stats}) {
@@ -129,6 +150,7 @@ class AirDefenseSystem {
       stats: stats ?? this.stats,
       sourceLabel: sourceLabel,
       sourceUrl: sourceUrl,
+      sourceDate: sourceDate,
       baseName: baseName,
       operator: operator,
     );
