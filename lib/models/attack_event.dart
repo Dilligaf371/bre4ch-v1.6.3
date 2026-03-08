@@ -3,7 +3,7 @@
 // BRE4CH
 // =============================================================================
 
-enum AttackType { ballistic, drone, cyber, artillery, cruise, sabotage }
+enum AttackType { ballistic, drone, cyber, artillery, cruise, sabotage, general }
 
 enum EventStatus { intercepted, impact, ongoing, neutralized }
 
@@ -36,7 +36,7 @@ class AttackEvent {
       timestamp: json['timestamp'] as int,
       type: AttackType.values.firstWhere(
         (e) => e.name == json['type'],
-        orElse: () => AttackType.ballistic,
+        orElse: () => AttackType.general,
       ),
       origin: json['origin'] as String,
       target: json['target'] as String,

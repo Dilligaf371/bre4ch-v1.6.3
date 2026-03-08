@@ -257,49 +257,190 @@ class _DeltaSScreenState extends ConsumerState<DeltaSScreen> {
     );
   }
 
-  // ── Briefing Markdown Content ─────────────────────────────────────
+  // ── Briefing Markdown Content — Collapsible Sections ─────────────
+
+  /// Parse briefing into sections split by `## ` headers.
+  /// Returns list of (title, body) pairs.
+  List<(String, String)> _parseSections(String content) {
+    final sections = <(String, String)>[];
+    final lines = content.split('\n');
+    String? currentTitle;
+    final buffer = StringBuffer();
+
+    for (final line in lines) {
+      if (line.startsWith('## ')) {
+        // Save previous section
+        if (currentTitle != null) {
+          sections.add((currentTitle, buffer.toString().trim()));
+        } else if (buffer.isNotEmpty) {
+          // Content before first ## (title block)
+          sections.add(('_header', buffer.toString().trim()));
+        }
+        currentTitle = line.substring(3).trim();
+        buffer.clear();
+      } else {
+        buffer.writeln(line);
+      }
+    }
+    // Save last section
+    if (currentTitle != null) {
+      sections.add((currentTitle, buffer.toString().trim()));
+    } else if (buffer.isNotEmpty) {
+      sections.add(('_header', buffer.toString().trim()));
+    }
+    return sections;
+  }
+
+  /// Section icon based on title keyword
+  IconData _sectionIcon(String title) {
+    final t = title.toUpperCase();
+    if (t.contains('EXECUTIVE') || t.contains('SUMMARY')) return Icons.summarize;
+    if (t.contains('THREAT')) return Icons.warning_amber;
+    if (t.contains('EVENT')) return Icons.event_note;
+    if (t.contains('BATTLEFIELD') || t.contains('STATUS')) return Icons.military_tech;
+    if (t.contains('RESIDUAL') || t.contains('CAPABILITIES')) return Icons.shield;
+    if (t.contains('REGIONAL')) return Icons.public;
+    if (t.contains('POLITICAL') || t.contains('DIPLOMATIC')) return Icons.account_balance;
+    if (t.contains('ECONOMIC')) return Icons.trending_up;
+    if (t.contains('OUTLOOK')) return Icons.visibility;
+    if (t.contains('SOURCE')) return Icons.link;
+    return Icons.article;
+  }
+
+  /// Section accent color
+  Color _sectionColor(String title) {
+    final t = title.toUpperCase();
+    if (t.contains('THREAT')) return Palantir.danger;
+    if (t.contains('EVENT')) return Palantir.orange;
+    if (t.contains('BATTLEFIELD') || t.contains('STATUS')) return Palantir.cyan;
+    if (t.contains('RESIDUAL') || t.contains('CAPABILITIES')) return Palantir.warning;
+    if (t.contains('OUTLOOK')) return Palantir.success;
+    return Palantir.accent;
+  }
+
+  MarkdownStyleSheet get _mdStyle => MarkdownStyleSheet(
+    h1: AppTextStyles.mono(size: 16, weight: FontWeight.w800, color: Palantir.accent, letterSpacing: 1.0),
+    h2: AppTextStyles.mono(size: 14, weight: FontWeight.w700, color: Palantir.text, letterSpacing: 1.0),
+    h3: AppTextStyles.mono(size: 12, weight: FontWeight.w600, color: Palantir.cyan),
+    h4: AppTextStyles.mono(size: 11, weight: FontWeight.w600, color: Palantir.textMuted),
+    p: AppTextStyles.sans(size: 12, color: Palantir.text),
+    strong: AppTextStyles.sans(size: 12, weight: FontWeight.w700, color: Palantir.text),
+    em: AppTextStyles.sans(size: 12, color: Palantir.textMuted),
+    a: AppTextStyles.mono(size: 11, color: Palantir.cyan),
+    code: AppTextStyles.mono(size: 11, color: Palantir.accent),
+    codeblockDecoration: BoxDecoration(
+      color: Palantir.bg,
+      borderRadius: BorderRadius.circular(6),
+      border: Border.all(color: Palantir.border),
+    ),
+    codeblockPadding: const EdgeInsets.all(12),
+    tableHead: AppTextStyles.mono(size: 10, weight: FontWeight.w700, color: Palantir.accent, letterSpacing: 0.5),
+    tableBody: AppTextStyles.mono(size: 10, color: Palantir.text),
+    tableBorder: TableBorder.all(color: Palantir.border, width: 0.5),
+    tableHeadAlign: TextAlign.left,
+    tableCellsPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    listBullet: AppTextStyles.sans(size: 12, color: Palantir.accent),
+    horizontalRuleDecoration: BoxDecoration(
+      border: Border(top: BorderSide(color: Palantir.border, width: 1)),
+    ),
+    blockquoteDecoration: BoxDecoration(
+      border: Border(left: BorderSide(color: Palantir.accent, width: 3)),
+    ),
+    blockquotePadding: const EdgeInsets.only(left: 12, top: 4, bottom: 4),
+    blockquote: AppTextStyles.sans(size: 11, color: Palantir.textMuted),
+  );
 
   Widget _buildBriefingContent(String content) {
-    return PalantirCard(
-      padding: const EdgeInsets.all(16),
-      child: MarkdownBody(
-        data: content,
-        selectable: true,
-        onTapLink: (text, href, title) {
-          if (href != null) _openUrl(href);
-        },
-        styleSheet: MarkdownStyleSheet(
-          h1: AppTextStyles.mono(size: 16, weight: FontWeight.w800, color: Palantir.accent, letterSpacing: 1.0),
-          h2: AppTextStyles.mono(size: 14, weight: FontWeight.w700, color: Palantir.text, letterSpacing: 1.0),
-          h3: AppTextStyles.mono(size: 12, weight: FontWeight.w600, color: Palantir.cyan),
-          h4: AppTextStyles.mono(size: 11, weight: FontWeight.w600, color: Palantir.textMuted),
-          p: AppTextStyles.sans(size: 12, color: Palantir.text),
-          strong: AppTextStyles.sans(size: 12, weight: FontWeight.w700, color: Palantir.text),
-          em: AppTextStyles.sans(size: 12, color: Palantir.textMuted),
-          a: AppTextStyles.mono(size: 11, color: Palantir.cyan),
-          code: AppTextStyles.mono(size: 11, color: Palantir.accent),
-          codeblockDecoration: BoxDecoration(
-            color: Palantir.bg,
+    final sections = _parseSections(content);
+
+    return Column(
+      children: sections.map((section) {
+        final (title, body) = section;
+
+        // Header block (before first ##) — always visible, no card
+        if (title == '_header') {
+          return const SizedBox.shrink();
+        }
+
+        final isExecSummary = title.toUpperCase().contains('EXECUTIVE SUMMARY');
+        final isSources = title.toUpperCase().contains('SOURCE');
+        final color = _sectionColor(title);
+        final icon = _sectionIcon(title);
+
+        // Executive Summary — always expanded, no collapse
+        if (isExecSummary) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: PalantirCard(
+              borderColor: Palantir.accent.withValues(alpha: 0.3),
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(icon, size: 14, color: Palantir.accent),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          title.toUpperCase(),
+                          style: AppTextStyles.mono(size: 11, weight: FontWeight.w800, color: Palantir.accent, letterSpacing: 1.2),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  MarkdownBody(
+                    data: body,
+                    selectable: true,
+                    onTapLink: (text, href, t2) { if (href != null) _openUrl(href); },
+                    styleSheet: _mdStyle,
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        // All other sections — collapsible tile
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: ClipRRect(
             borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: Palantir.border),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Palantir.surface,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: Palantir.border.withValues(alpha: 0.5), width: 0.5),
+              ),
+              child: Theme(
+                data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                child: ExpansionTile(
+                  tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                  childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                  initiallyExpanded: false,
+                  collapsedIconColor: Palantir.textMuted,
+                  iconColor: color,
+                  leading: Icon(icon, size: 14, color: color),
+                  title: Text(
+                    title.toUpperCase(),
+                    style: AppTextStyles.mono(size: 10, weight: FontWeight.w700, color: Palantir.text, letterSpacing: 1.0),
+                  ),
+                  children: [
+                    MarkdownBody(
+                      data: body,
+                      selectable: true,
+                      shrinkWrap: true,
+                      onTapLink: (text, href, t2) { if (href != null) _openUrl(href); },
+                      styleSheet: _mdStyle,
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
-          codeblockPadding: const EdgeInsets.all(12),
-          tableHead: AppTextStyles.mono(size: 10, weight: FontWeight.w700, color: Palantir.accent, letterSpacing: 0.5),
-          tableBody: AppTextStyles.mono(size: 10, color: Palantir.text),
-          tableBorder: TableBorder.all(color: Palantir.border, width: 0.5),
-          tableHeadAlign: TextAlign.left,
-          tableCellsPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          listBullet: AppTextStyles.sans(size: 12, color: Palantir.accent),
-          horizontalRuleDecoration: BoxDecoration(
-            border: Border(top: BorderSide(color: Palantir.border, width: 1)),
-          ),
-          blockquoteDecoration: BoxDecoration(
-            border: Border(left: BorderSide(color: Palantir.accent, width: 3)),
-          ),
-          blockquotePadding: const EdgeInsets.only(left: 12, top: 4, bottom: 4),
-          blockquote: AppTextStyles.sans(size: 11, color: Palantir.textMuted),
-        ),
-      ),
+        );
+      }).toList(),
     );
   }
 

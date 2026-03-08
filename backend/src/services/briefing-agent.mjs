@@ -31,7 +31,7 @@ const MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 const GROUNDING = (process.env.BRIEFING_GROUNDING || 'true') === 'true';
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
 const MISSION_START = new Date('2026-02-28T02:00:00Z');
-const SCHEDULE_HOURS = [7, 19]; // UTC hours for briefing generation
+const SCHEDULE_HOURS = [3, 15]; // 07:00 & 19:00 UAE time (UTC+4)
 
 // ── Paths ────────────────────────────────────────────────────────
 
@@ -103,10 +103,33 @@ async function callGemini(userPrompt) {
   }
 
   return {
-    text,
+    text: cleanContent(text),
     usage: data.usageMetadata || {},
     groundingSources: data.candidates?.[0]?.groundingMetadata?.groundingChunks?.length || 0,
   };
+}
+
+// ── Clean up Gemini grounding URLs + noise ───────────────────────
+
+function cleanContent(raw) {
+  let text = raw;
+
+  // Strip Google grounding redirect URLs: [Label](https://vertexaisearch...) → Label
+  text = text.replace(
+    /\[([^\]]+)\]\(https?:\/\/vertexaisearch\.cloud\.google\.com\/grounding-api-redirect\/[^\)]+\)/g,
+    '$1'
+  );
+  // Strip bare grounding URLs
+  text = text.replace(
+    /\(?https?:\/\/vertexaisearch\.cloud\.google\.com\/grounding-api-redirect\/[^\s\)]+\)?/g,
+    ''
+  );
+  // Collapse multiple blank lines
+  text = text.replace(/\n{4,}/g, '\n\n');
+  // Trim trailing whitespace per line
+  text = text.replace(/[ \t]+$/gm, '');
+
+  return text.trim();
 }
 
 // ── Generate briefing ────────────────────────────────────────────
@@ -145,9 +168,10 @@ export async function generateBriefing(tweetsData = [], headlinesData = []) {
       }
     }
 
-    userPrompt += `\nProduis le briefing WATCHDOG-IRAN complet pour ${now.toISOString().split('T')[0]}, jour J+${dayN}. `;
-    userPrompt += `Utilise le web search pour compléter avec les toutes dernières informations. `;
-    userPrompt += `Suis EXACTEMENT la structure définie dans ton system prompt.`;
+    userPrompt += `\nProduce the WATCHDOG-IRAN briefing for ${now.toISOString().split('T')[0]}, day J+${dayN}. `;
+    userPrompt += `Use web search to get the very latest information. `;
+    userPrompt += `Follow EXACTLY the structure defined in your system prompt. `;
+    userPrompt += `Write ENTIRELY in English. Keep it concise and mobile-readable.`;
 
     const result = await callGemini(userPrompt);
 

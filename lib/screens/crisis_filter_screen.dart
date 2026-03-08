@@ -394,6 +394,8 @@ class _CrisisFilterScreenState extends ConsumerState<CrisisFilterScreen>
         icon = Icons.memory;
       case AttackType.sabotage:
         icon = Icons.warning_amber;
+      case AttackType.general:
+        icon = Icons.info_outline;
     }
 
     return Container(
@@ -422,6 +424,8 @@ class _CrisisFilterScreenState extends ConsumerState<CrisisFilterScreen>
         return AttackColors.cyber;
       case AttackType.sabotage:
         return AttackColors.sabotage;
+      case AttackType.general:
+        return AttackColors.general;
     }
   }
 
@@ -439,6 +443,8 @@ class _CrisisFilterScreenState extends ConsumerState<CrisisFilterScreen>
         return 'CYBER OPERATION';
       case AttackType.sabotage:
         return 'SABOTAGE / SOF';
+      case AttackType.general:
+        return 'MILITARY EVENT';
     }
   }
 

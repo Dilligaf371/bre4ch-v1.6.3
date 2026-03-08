@@ -199,8 +199,8 @@ final Set<String> _officialGovHandles = _sourceUrls.keys
 // Country names are used ONLY in _detectTargetRegion for labeling.
 
 const List<String> _conflictTerms = [
-  // ── Core conflict terms ──
-  'iran', 'israel', 'military', 'strike', 'missile', 'kill', 'attack', 'war',
+  // ── Core conflict terms (NO country names — too broad) ──
+  'israel', 'military', 'strike', 'missile', 'kill', 'attack', 'war',
   'drone', 'bomb', 'nuclear', 'hezbollah', 'gaza', 'navy', 'air force',
   'centcom', 'intercept', 'defense', 'defence', 'houthi', 'yemen', 'lebanon',
   'coalition', 'nato', 'pentagon', 'pmf', 'irgc', 'quds',
@@ -213,7 +213,8 @@ const List<String> _conflictTerms = [
   'wounded', 'martyr', 'shahid', 'retaliat', 'escalat', 'deploy', 'sanction',
   'sabotage', 'operation', 'evacuate', 'shelter', 'siren', 'alert', 'raid',
   'target', 'threat', 'combat', 'troops', 'infantry', 'armor', 'tank',
-  'patriot', 'thaad', 'iron dome', 'arrow', 'air defense', 'shot down',
+  'patriot missile', 'patriot battery', 'patriot system', 'thaad',
+  'iron dome', 'arrow', 'air defense', 'shot down',
   'proxy', 'terror', 'hostage', 'negotiat', 'diplomat', 'ultimatum',
   // ── Arabic conflict terms ──
   'هجوم', 'صاروخ', 'طائرة مسيرة', 'ضربة', 'قتل', 'حرب', 'إجلاء',
@@ -224,9 +225,20 @@ const List<String> _conflictTerms = [
   'وزارة الدفاع', 'وزارة الداخلية', 'وزارة الخارجية',
 ];
 
-/// Check if text is conflict-relevant (requires actual military/conflict terms).
+// ── Exclusion terms (reject false positives: sport, entertainment, etc.) ──
+const List<String> _exclusionTerms = [
+  'football', 'soccer', 'player', 'coach', 'league', 'match', 'fixture',
+  'goal', 'score', 'tournament', 'championship', 'cup final', 'transfer',
+  'cricket', 'tennis', 'basketball', 'olympics', 'athlete', 'stadium',
+  'entertainer', 'concert', 'album', 'movie', 'film', 'actor', 'actress',
+  'recipe', 'cooking', 'fashion', 'celebrity', 'reality show',
+];
+
+/// Check if text is conflict-relevant (requires military terms + no exclusion).
 bool _isConflictRelevant(String text) {
   final lower = text.toLowerCase();
+  // Reject if any exclusion term is present (sport, entertainment, etc.)
+  if (_exclusionTerms.any((kw) => lower.contains(kw))) return false;
   return _conflictTerms.any((kw) => lower.contains(kw));
 }
 
@@ -271,9 +283,17 @@ String _randomId(String prefix) {
   return '$prefix-$ts-$r';
 }
 
-/// MED-04: Content-based hash for deduplication (title + source + date).
+/// MED-04: Content-based hash for deduplication.
+/// Uses normalized title only (lowered, trimmed, no trailing punctuation).
+/// Source and date are excluded to catch duplicates arriving from different
+/// channels or with slightly different timestamps.
 String _contentHash(String title, String source, String date) {
-  final input = '$title|$source|$date';
+  // Normalize: lowercase, trim whitespace, strip trailing ellipsis/punctuation
+  final normalized = title.toLowerCase().trim()
+      .replaceAll(RegExp(r'[\s]+'), ' ')       // collapse whitespace
+      .replaceAll(RegExp(r'[…\.]+$'), '')       // strip trailing ...
+      .replaceAll(RegExp(r'https?://\S+'), ''); // strip URLs
+  final input = '$normalized|${source.toLowerCase()}';
   return sha256.convert(utf8.encode(input)).toString().substring(0, 16);
 }
 
@@ -287,7 +307,7 @@ AttackEvent? _liveHeadlineToEvent(Map<String, dynamic> h) {
 
   final lower = title.toLowerCase();
 
-  AttackType type = AttackType.cruise;
+  AttackType type = AttackType.general;
   if (lower.contains('drone') || lower.contains('uav')) {
     type = AttackType.drone;
   } else if (lower.contains('missile') || lower.contains('ballistic') || lower.contains('rocket')) {
@@ -348,7 +368,7 @@ AttackEvent _liveuamapToEvent(Map<String, dynamic> e) {
   final time = e['time'] as int? ?? 0;
 
   final lower = name.toLowerCase();
-  AttackType type = AttackType.cruise;
+  AttackType type = AttackType.general;
   if (lower.contains('drone') || lower.contains('uav')) type = AttackType.drone;
   else if (lower.contains('missile') || lower.contains('ballistic')) type = AttackType.ballistic;
   else if (lower.contains('cyber')) type = AttackType.cyber;
@@ -403,7 +423,7 @@ AttackEvent? _socmintGovToEvent(Map<String, dynamic> m) {
           : 'https://instagram.com/${source.replaceAll('@', '')}'};
 
   // Detect attack type
-  AttackType type = AttackType.cruise;
+  AttackType type = AttackType.general;
   if (lowerContent.contains('drone') || lowerContent.contains('uav')) {
     type = AttackType.drone;
   } else if (lowerContent.contains('missile') || lowerContent.contains('ballistic') ||

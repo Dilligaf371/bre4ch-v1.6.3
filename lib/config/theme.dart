@@ -44,6 +44,7 @@ class AttackColors {
   static const Color artillery = Color(0xFFEAB308);
   static const Color cyber = Color(0xFFA855F7);
   static const Color sabotage = Color(0xFFEC4899);
+  static const Color general = Color(0xFF6B7280);
 }
 
 // ── Severity Colors ───────────────────────────────────────────────

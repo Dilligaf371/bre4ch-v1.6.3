@@ -202,6 +202,7 @@ class RealtimeStatsNotifier extends StateNotifier<RealtimeStatsState> {
         case AttackType.artillery: liveArtillery++; break;
         case AttackType.cruise: liveCruise++; break;
         case AttackType.sabotage: liveSabotage++; break;
+        case AttackType.general: break; // no dedicated counter
       }
       if (e.status == EventStatus.intercepted || e.status == EventStatus.neutralized) {
         liveIntercepted++;
