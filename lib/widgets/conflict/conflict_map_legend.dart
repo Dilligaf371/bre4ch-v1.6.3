@@ -31,7 +31,7 @@ class ConflictMapLegend extends StatelessWidget {
         children: [
           if (showMissiles) ...[
             Text(
-              'MISSILE SITES',
+              'STRIKE TARGETS',
               style: AppTextStyles.mono(
                 size: 8,
                 weight: FontWeight.w700,
@@ -41,7 +41,7 @@ class ConflictMapLegend extends StatelessWidget {
             ),
             const SizedBox(height: 3),
             _legendDot(StatusColors.active, 'ACTIVE'),
-            _legendDot(StatusColors.neutralized, 'DESTROYED'),
+            _legendDotRing(StatusColors.destroyed, NatoColors.hostile, 'DESTROYED'),
             _legendDot(StatusColors.damaged, 'PARTIAL'),
             _legendDot(StatusColors.unknown, 'UNKNOWN'),
           ],
@@ -75,6 +75,31 @@ class ConflictMapLegend extends StatelessWidget {
             decoration: BoxDecoration(shape: BoxShape.circle, color: color),
           ),
           const SizedBox(width: 4),
+          Text(
+            label,
+            style: AppTextStyles.mono(size: 8, color: Palantir.textMuted),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// NATO destroyed indicator: grey dot with red ring border
+  Widget _legendDotRing(Color fill, Color ring, String label) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 2),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 8, height: 8,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: fill,
+              border: Border.all(color: ring, width: 1.5),
+            ),
+          ),
+          const SizedBox(width: 3),
           Text(
             label,
             style: AppTextStyles.mono(size: 8, color: Palantir.textMuted),

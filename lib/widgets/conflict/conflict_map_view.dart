@@ -316,11 +316,24 @@ class _ConflictMapViewState extends ConsumerState<ConflictMapView> {
 
   Marker _buildMissileSiteMarker(MissileSite site) {
     final color = _missileSiteColor(site.status);
-    final icon = site.status == MissileSiteStatus.destroyed
-        ? Icons.close
-        : site.status == MissileSiteStatus.partiallyDestroyed
-            ? Icons.warning_amber
-            : Icons.rocket_launch;
+    final isDestroyed = site.status == MissileSiteStatus.destroyed;
+
+    // NATO icons: X = destroyed, ⚠ = partial, ? = unknown, 🚀 = active
+    final IconData icon;
+    switch (site.status) {
+      case MissileSiteStatus.destroyed:
+        icon = Icons.close;
+      case MissileSiteStatus.partiallyDestroyed:
+        icon = Icons.warning_amber;
+      case MissileSiteStatus.unknown:
+        icon = Icons.help_outline;
+      case MissileSiteStatus.active:
+        icon = Icons.rocket_launch;
+    }
+
+    // NATO: destroyed = grey fill + red ring border
+    final borderColor = isDestroyed ? NatoColors.hostile : Colors.white;
+    final glowColor = isDestroyed ? NatoColors.hostile : color;
 
     return Marker(
       point: LatLng(site.lat, site.lng),
@@ -337,10 +350,10 @@ class _ConflictMapViewState extends ConsumerState<ConflictMapView> {
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.9),
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2),
+                border: Border.all(color: borderColor, width: 2),
                 boxShadow: [
                   BoxShadow(
-                    color: color.withValues(alpha: 0.5),
+                    color: glowColor.withValues(alpha: 0.5),
                     blurRadius: 8,
                     spreadRadius: 2,
                   ),
@@ -452,7 +465,7 @@ class _ConflictMapViewState extends ConsumerState<ConflictMapView> {
       case MissileSiteStatus.active:
         return StatusColors.active;
       case MissileSiteStatus.destroyed:
-        return StatusColors.neutralized;
+        return StatusColors.destroyed;
       case MissileSiteStatus.partiallyDestroyed:
         return StatusColors.damaged;
       case MissileSiteStatus.unknown:

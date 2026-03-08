@@ -101,10 +101,10 @@ void showMissileSiteSheet(BuildContext context, MissileSite site) {
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: StatusColors.neutralized.withValues(alpha: 0.08),
+                  color: StatusColors.destroyed.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: StatusColors.neutralized.withValues(alpha: 0.3),
+                    color: StatusColors.destroyed.withValues(alpha: 0.3),
                   ),
                 ),
                 child: Column(
@@ -112,14 +112,14 @@ void showMissileSiteSheet(BuildContext context, MissileSite site) {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.gps_fixed, size: 12, color: StatusColors.neutralized),
+                        Icon(Icons.gps_fixed, size: 12, color: StatusColors.destroyed),
                         const SizedBox(width: 6),
                         Text(
                           'STRIKE ASSESSMENT',
                           style: AppTextStyles.mono(
                             size: 10,
                             weight: FontWeight.w700,
-                            color: StatusColors.neutralized,
+                            color: StatusColors.destroyed,
                             letterSpacing: 1.0,
                           ),
                         ),
@@ -266,7 +266,7 @@ Color _statusColor(MissileSiteStatus status) {
     case MissileSiteStatus.active:
       return StatusColors.active;
     case MissileSiteStatus.destroyed:
-      return StatusColors.neutralized;
+      return StatusColors.destroyed;
     case MissileSiteStatus.partiallyDestroyed:
       return StatusColors.damaged;
     case MissileSiteStatus.unknown:

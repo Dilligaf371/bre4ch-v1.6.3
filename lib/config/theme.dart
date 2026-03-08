@@ -61,13 +61,17 @@ class SeverityColors {
 class StatusColors {
   StatusColors._();
 
-  static const Color active = Color(0xFFEF4444);
-  static const Color damaged = Color(0xFFF97316);
-  static const Color neutralized = Color(0xFF22C55E);
-  static const Color unknown = Color(0xFF6E7681);
-  static const Color intercepted = Color(0xFF22C55E);
-  static const Color impact = Color(0xFFEF4444);
-  static const Color ongoing = Color(0xFFF59E0B);
+  // ── Map marker status (NATO APP-6) ──
+  static const Color active = Color(0xFFEF4444);       // Red — hostile active
+  static const Color damaged = Color(0xFFF97316);       // Orange — partially destroyed
+  static const Color destroyed = Color(0xFF6E7681);     // Grey — destroyed (NATO: grey + red ring)
+  static const Color unknown = Color(0xFFEAB308);       // Yellow — unknown (NATO standard)
+
+  // ── Event status (feed) ──
+  static const Color neutralized = Color(0xFF22C55E);   // Green — event neutralized
+  static const Color intercepted = Color(0xFF22C55E);   // Green — intercepted
+  static const Color impact = Color(0xFFEF4444);        // Red — impact
+  static const Color ongoing = Color(0xFFF59E0B);       // Yellow — ongoing
 }
 
 // ── Text Styles ───────────────────────────────────────────────────
