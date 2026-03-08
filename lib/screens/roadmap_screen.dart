@@ -33,7 +33,7 @@ class RoadmapScreen extends StatelessWidget {
                     _buildOfflineMapsCard(context),
                     const SizedBox(height: 12),
                     _buildSection('APPLICATION', [
-                      _row('Version', '1.6'),
+                      _row('Version', '1.8.0'),
                       _row('Build', 'Flutter 3.41.3'),
                       _row('Platform', 'iOS + Android'),
                       _row('Codename', operationName),
@@ -299,9 +299,8 @@ class RoadmapScreen extends StatelessWidget {
           _milestoneRow('v1.3', 'Offline mode + caching', MilestoneStatus.complete),
           _milestoneRow('v1.4', 'Detection API + OSINT feeds', MilestoneStatus.complete),
           _milestoneRow('v1.5', 'SOCMINT + emergency alerts', MilestoneStatus.complete),
-          _milestoneRow('v1.6', 'WebSocket real-time architecture', MilestoneStatus.active),
-          _milestoneRow('v1.7', 'Real-time map overlays', MilestoneStatus.pending),
-          _milestoneRow('v1.8', 'AI Agent Integration', MilestoneStatus.active),
+          _milestoneRow('v1.6', 'WebSocket real-time architecture', MilestoneStatus.complete),
+          _milestoneRow('v1.7', 'AI BRE4CH Briefing', MilestoneStatus.active),
         ],
       ),
     );
