@@ -10,18 +10,12 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../config/theme.dart';
-import '../models/socmint_item.dart';
 import '../models/osint_item.dart';
 import '../providers/briefing_provider.dart';
 import '../providers/osint_provider.dart';
-import '../providers/socmint_provider.dart';
 import '../utils/formatters.dart';
 import '../widgets/common/header_bar.dart';
 import '../widgets/common/palantir_card.dart';
-import '../widgets/common/severity_badge.dart';
-// ignore: unused_import
-import '../widgets/common/priority_badge.dart';
-import '../widgets/common/filter_chip_row.dart';
 import '../widgets/common/pulsing_dot.dart';
 
 class DeltaSScreen extends ConsumerStatefulWidget {
@@ -32,7 +26,6 @@ class DeltaSScreen extends ConsumerStatefulWidget {
 }
 
 class _DeltaSScreenState extends ConsumerState<DeltaSScreen> {
-  final Set<String> _socmintSourceFilter = {};
   Timer? _clockTimer;
   DateTime _now = DateTime.now().toUtc();
 
@@ -363,7 +356,6 @@ class _DeltaSScreenState extends ConsumerState<DeltaSScreen> {
         }
 
         final isExecSummary = title.toUpperCase().contains('EXECUTIVE SUMMARY');
-        final isSources = title.toUpperCase().contains('SOURCE');
         final color = _sectionColor(title);
         final icon = _sectionIcon(title);
 
@@ -558,186 +550,6 @@ class _DeltaSScreenState extends ConsumerState<DeltaSScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  // ── SOCMINT TAB ──────────────────────────────────────────────────
-
-  Widget _buildSocmintTab() {
-    final allSocmint = ref.watch(socmintProvider);
-    final filtered = _filteredSocmint(allSocmint);
-
-    return Column(
-      children: [
-        _buildPlatformStats(allSocmint),
-        const SizedBox(height: 8),
-        FilterChipRow(
-          labels: const ['MISSILES', 'MOI', 'MOD', 'MOFA', 'GOV'],
-          selected: _socmintSourceFilter,
-          onToggle: (label) {
-            setState(() {
-              if (_socmintSourceFilter.contains(label)) {
-                _socmintSourceFilter.remove(label);
-              } else {
-                _socmintSourceFilter.add(label);
-              }
-            });
-          },
-          activeColor: Palantir.danger,
-        ),
-        const SizedBox(height: 8),
-        Expanded(
-          child: RefreshIndicator(
-            color: Palantir.accent,
-            backgroundColor: Palantir.surface,
-            onRefresh: () async {
-              await Future.delayed(const Duration(seconds: 1));
-            },
-            child: filtered.isEmpty
-                ? Center(child: Text('Waiting for live SOCMINT data...', style: AppTextStyles.sans(size: 11, color: Palantir.textMuted)))
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: filtered.length,
-                    itemBuilder: (context, index) => _buildSocmintCard(filtered[index]),
-                  ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  List<SocmintItem> _filteredSocmint(List<SocmintItem> items) {
-    if (_socmintSourceFilter.isEmpty) return items;
-    return items.where((item) {
-      final tags = _socmintSourceTags(item);
-      return _socmintSourceFilter.any((f) => tags.contains(f));
-    }).toList();
-  }
-
-  Set<String> _socmintSourceTags(SocmintItem item) {
-    final tags = <String>{};
-    final lower = item.content.toLowerCase();
-    final srcLower = item.source.toLowerCase();
-    if (lower.contains('missile') || lower.contains('ballistic') || lower.contains('rocket') ||
-        lower.contains('intercept') || lower.contains('صاروخ') || lower.contains('باليستي') ||
-        lower.contains('اعتراض') || lower.contains('thaad') || lower.contains('patriot') ||
-        lower.contains('warhead') || lower.contains('icbm')) tags.add('MISSILES');
-    if (srcLower.contains('moi') || srcLower.contains('interior') || srcLower.contains('الداخلية') ||
-        srcLower.contains('ncema') || srcLower.contains('aboron_uae')) tags.add('MOI');
-    if (srcLower.contains('mod') || srcLower.contains('defense') || srcLower.contains('defence') ||
-        srcLower.contains('الدفاع') || srcLower.contains('modgovae') || srcLower.contains('centcom') ||
-        srcLower.contains('idf') || srcLower.contains('dod')) tags.add('MOD');
-    if (srcLower.contains('mofa') || srcLower.contains('foreign') || srcLower.contains('الخارجية') ||
-        srcLower.contains('mofaic') || srcLower.contains('fcdo') || srcLower.contains('state dept')) tags.add('MOFA');
-    if (item.isOfficialGov || srcLower.contains('wam') || srcLower.contains('spa') ||
-        srcLower.contains('qna') || srcLower.contains('bna') || srcLower.contains('kuna') ||
-        srcLower.contains('ona') || tags.contains('MOI') || tags.contains('MOD') ||
-        tags.contains('MOFA')) tags.add('GOV');
-    return tags;
-  }
-
-  Widget _buildPlatformStats(List<SocmintItem> items) {
-    final tgCount = items.where((i) => i.platform == SocmintPlatform.telegram).length;
-    final xCount = items.where((i) => i.platform == SocmintPlatform.x).length;
-    final snapCount = items.where((i) => i.platform == SocmintPlatform.snapchat).length;
-    final igCount = items.where((i) => i.platform == SocmintPlatform.instagram).length;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: [
-          _platformStat('TG', tgCount, Palantir.info),
-          const SizedBox(width: 12),
-          _platformStat('X', xCount, Palantir.text),
-          const SizedBox(width: 12),
-          _platformStat('IG', igCount, Palantir.pink),
-          const SizedBox(width: 12),
-          _platformStat('SNAP', snapCount, Palantir.warning),
-          const Spacer(),
-          Text('${items.length} ITEMS', style: AppTextStyles.mono(size: 11, color: Palantir.textMuted, letterSpacing: 1.0)),
-        ],
-      ),
-    );
-  }
-
-  Widget _platformStat(String label, int count, Color color) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(width: 6, height: 6, decoration: BoxDecoration(shape: BoxShape.circle, color: color)),
-        const SizedBox(width: 4),
-        Text(label, style: AppTextStyles.mono(size: 10, weight: FontWeight.w600, color: Palantir.textMuted, letterSpacing: 0.5)),
-        const SizedBox(width: 4),
-        Text('$count', style: AppTextStyles.mono(size: 10, weight: FontWeight.w700, color: color)),
-      ],
-    );
-  }
-
-  Widget _buildSocmintCard(SocmintItem item) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: PalantirCard(
-        borderColor: item.flagged ? Palantir.danger.withValues(alpha: 0.5) : null,
-        padding: const EdgeInsets.all(10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                _platformIcon(item.platform),
-                const SizedBox(width: 6),
-                Expanded(child: Text(item.source, style: AppTextStyles.mono(size: 10, weight: FontWeight.w600, color: Palantir.accent), overflow: TextOverflow.ellipsis)),
-                if (item.isOfficialGov) ...[
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                    decoration: BoxDecoration(color: Palantir.success.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(3), border: Border.all(color: Palantir.success.withValues(alpha: 0.4), width: 0.5)),
-                    child: Text('GOV', style: AppTextStyles.mono(size: 8, weight: FontWeight.w800, color: Palantir.success, letterSpacing: 0.5)),
-                  ),
-                  const SizedBox(width: 6),
-                ],
-                if (item.flagged) ...[Icon(Icons.flag, size: 12, color: Palantir.danger), const SizedBox(width: 6)],
-                SeverityBadge(severity: item.severity),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(item.content, style: AppTextStyles.sans(size: 12, color: Palantir.text), maxLines: 3, overflow: TextOverflow.ellipsis),
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                  decoration: BoxDecoration(color: Palantir.border, borderRadius: BorderRadius.circular(2)),
-                  child: Text(item.language, style: AppTextStyles.mono(size: 11, weight: FontWeight.w600, color: Palantir.textMuted)),
-                ),
-                if (item.location != null) ...[
-                  const SizedBox(width: 8),
-                  Icon(Icons.location_on, size: 10, color: Palantir.textMuted),
-                  const SizedBox(width: 2),
-                  Flexible(child: Text(item.location!, style: AppTextStyles.mono(size: 10, color: Palantir.textMuted), overflow: TextOverflow.ellipsis)),
-                ],
-                const Spacer(),
-                Text(formatTimestamp(item.timestamp), style: AppTextStyles.mono(size: 10, color: Palantir.textMuted)),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _platformIcon(SocmintPlatform platform) {
-    final IconData icon;
-    final Color color;
-    switch (platform) {
-      case SocmintPlatform.telegram: icon = Icons.send; color = Palantir.info;
-      case SocmintPlatform.x: icon = Icons.tag; color = Palantir.text;
-      case SocmintPlatform.instagram: icon = Icons.camera_alt_outlined; color = Palantir.pink;
-      case SocmintPlatform.snapchat: icon = Icons.camera_alt; color = Palantir.warning;
-    }
-    return Container(
-      width: 20, height: 20,
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(4)),
-      child: Icon(icon, size: 12, color: color),
     );
   }
 

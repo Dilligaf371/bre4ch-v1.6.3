@@ -224,11 +224,11 @@ SocmintItem _headlineToSocmint(Map<String, dynamic> h, double roll) {
   // 25% Telegram (0.45 → 0.70)
   if (roll < 0.70) {
     String channel;
-    if (src == 'CENTCOM') channel = 't.me/CentcomOfficial';
-    else if (src == 'Al Jazeera') channel = 't.me/AJArabic';
-    else if (src == 'Reuters') channel = 't.me/reuters';
-    else if (src == 'IDF') channel = 't.me/IDFofficial';
-    else channel = 't.me/IranDefenseWatch';
+    if (src == 'CENTCOM') { channel = 't.me/CentcomOfficial'; }
+    else if (src == 'Al Jazeera') { channel = 't.me/AJArabic'; }
+    else if (src == 'Reuters') { channel = 't.me/reuters'; }
+    else if (src == 'IDF') { channel = 't.me/IDFofficial'; }
+    else { channel = 't.me/IranDefenseWatch'; }
 
     return SocmintItem(
       id: _randomId('socm-tg'),
@@ -263,13 +263,13 @@ SocmintItem _headlineToSocmint(Map<String, dynamic> h, double roll) {
   // 10% Snapchat
   String location = 'Middle East';
   final lower = title.toLowerCase();
-  if (lower.contains('dubai') || lower.contains('uae')) location = 'Dubai, UAE';
-  else if (lower.contains('tehran')) location = 'Tehran, Iran';
-  else if (lower.contains('israel') || lower.contains('tel aviv')) location = 'Tel Aviv, Israel';
-  else if (lower.contains('kuwait')) location = 'Kuwait City';
-  else if (lower.contains('bahrain')) location = 'Manama, Bahrain';
-  else if (lower.contains('doha') || lower.contains('qatar')) location = 'Doha, Qatar';
-  else if (lower.contains('beirut') || lower.contains('lebanon')) location = 'Beirut, Lebanon';
+  if (lower.contains('dubai') || lower.contains('uae')) { location = 'Dubai, UAE'; }
+  else if (lower.contains('tehran')) { location = 'Tehran, Iran'; }
+  else if (lower.contains('israel') || lower.contains('tel aviv')) { location = 'Tel Aviv, Israel'; }
+  else if (lower.contains('kuwait')) { location = 'Kuwait City'; }
+  else if (lower.contains('bahrain')) { location = 'Manama, Bahrain'; }
+  else if (lower.contains('doha') || lower.contains('qatar')) { location = 'Doha, Qatar'; }
+  else if (lower.contains('beirut') || lower.contains('lebanon')) { location = 'Beirut, Lebanon'; }
 
   return SocmintItem(
     id: _randomId('socm-snap'),
@@ -323,11 +323,10 @@ SocmintItem _wsToSocmint(Map<String, dynamic> m) {
 // ── StateNotifier ────────────────────────────────────────────────
 
 class SocmintNotifier extends StateNotifier<List<SocmintItem>> {
-  SocmintNotifier(this._ref, {this.maxItems = 50}) : super([]) {
+  SocmintNotifier(Ref ref, {this.maxItems = 50}) : super([]) {
     _init();
   }
 
-  final Ref _ref;
   final int maxItems;
   Timer? _headlineTimer;
   final Set<String> _injected = {};

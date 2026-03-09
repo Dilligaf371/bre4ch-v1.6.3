@@ -231,23 +231,23 @@ String detectTargetRegion(String text) {
   final lower = text.toLowerCase();
   if (lower.contains('uae') || lower.contains('dubai') || lower.contains('abu dhabi') ||
       lower.contains('sharjah') || lower.contains('emirates') || lower.contains('\u0627\u0644\u0625\u0645\u0627\u0631\u0627\u062a') ||
-      lower.contains('\u062f\u0628\u064a')) return 'UAE';
-  if (lower.contains('iran') || lower.contains('tehran') || lower.contains('isfahan')) return 'Iran';
-  if (lower.contains('israel') || lower.contains('tel aviv') || lower.contains('jerusalem')) return 'Israel';
+      lower.contains('\u062f\u0628\u064a')) { return 'UAE'; }
+  if (lower.contains('iran') || lower.contains('tehran') || lower.contains('isfahan')) { return 'Iran'; }
+  if (lower.contains('israel') || lower.contains('tel aviv') || lower.contains('jerusalem')) { return 'Israel'; }
   if (lower.contains('saudi') || lower.contains('riyadh') || lower.contains('jeddah') ||
-      lower.contains('ksa')) return 'KSA';
-  if (lower.contains('kuwait')) return 'Kuwait';
-  if (lower.contains('bahrain') || lower.contains('manama')) return 'Bahrain';
-  if (lower.contains('qatar') || lower.contains('doha')) return 'Qatar';
-  if (lower.contains('oman') || lower.contains('muscat')) return 'Oman';
-  if (lower.contains('jordan') || lower.contains('amman')) return 'Jordan';
-  if (lower.contains('lebanon') || lower.contains('beirut') || lower.contains('hezbollah')) return 'Lebanon';
-  if (lower.contains('iraq') || lower.contains('baghdad') || lower.contains('pmf')) return 'Iraq';
-  if (lower.contains('syria') || lower.contains('damascus')) return 'Syria';
-  if (lower.contains('yemen') || lower.contains('houthi') || lower.contains('sanaa')) return 'Yemen';
-  if (lower.contains('centcom') || lower.contains('pentagon') || lower.contains('washington')) return 'USA';
-  if (lower.contains('britain') || lower.contains('uk ')) return 'UK';
-  if (lower.contains('france') || lower.contains('french')) return 'France';
+      lower.contains('ksa')) { return 'KSA'; }
+  if (lower.contains('kuwait')) { return 'Kuwait'; }
+  if (lower.contains('bahrain') || lower.contains('manama')) { return 'Bahrain'; }
+  if (lower.contains('qatar') || lower.contains('doha')) { return 'Qatar'; }
+  if (lower.contains('oman') || lower.contains('muscat')) { return 'Oman'; }
+  if (lower.contains('jordan') || lower.contains('amman')) { return 'Jordan'; }
+  if (lower.contains('lebanon') || lower.contains('beirut') || lower.contains('hezbollah')) { return 'Lebanon'; }
+  if (lower.contains('iraq') || lower.contains('baghdad') || lower.contains('pmf')) { return 'Iraq'; }
+  if (lower.contains('syria') || lower.contains('damascus')) { return 'Syria'; }
+  if (lower.contains('yemen') || lower.contains('houthi') || lower.contains('sanaa')) { return 'Yemen'; }
+  if (lower.contains('centcom') || lower.contains('pentagon') || lower.contains('washington')) { return 'USA'; }
+  if (lower.contains('britain') || lower.contains('uk ')) { return 'UK'; }
+  if (lower.contains('france') || lower.contains('french')) { return 'France'; }
   return 'Iran Theater';
 }
 
@@ -337,14 +337,14 @@ AttackEvent liveuamapToEvent(Map<String, dynamic> e) {
 
   final lower = name.toLowerCase();
   AttackType type = AttackType.general;
-  if (lower.contains('drone') || lower.contains('uav')) type = AttackType.drone;
-  else if (lower.contains('missile') || lower.contains('ballistic')) type = AttackType.ballistic;
-  else if (lower.contains('cyber')) type = AttackType.cyber;
-  else if (lower.contains('artillery') || lower.contains('rocket')) type = AttackType.artillery;
+  if (lower.contains('drone') || lower.contains('uav')) { type = AttackType.drone; }
+  else if (lower.contains('missile') || lower.contains('ballistic')) { type = AttackType.ballistic; }
+  else if (lower.contains('cyber')) { type = AttackType.cyber; }
+  else if (lower.contains('artillery') || lower.contains('rocket')) { type = AttackType.artillery; }
 
   EventStatus status = EventStatus.ongoing;
-  if (lower.contains('intercept')) status = EventStatus.intercepted;
-  else if (lower.contains('hit') || lower.contains('struck') || lower.contains('kill')) status = EventStatus.impact;
+  if (lower.contains('intercept')) { status = EventStatus.intercepted; }
+  else if (lower.contains('hit') || lower.contains('struck') || lower.contains('kill')) { status = EventStatus.impact; }
 
   return AttackEvent(
     id: randomId('uamap'),

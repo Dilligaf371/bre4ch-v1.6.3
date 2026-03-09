@@ -67,7 +67,7 @@ class OfflineMapsScreen extends ConsumerWidget {
                               Switch.adaptive(
                                 value: state.offlineEnabled,
                                 onChanged: (v) => notifier.toggleOffline(v),
-                                activeColor: Palantir.accent,
+                                activeTrackColor: Palantir.accent,
                               ),
                             ],
                           ),

@@ -585,7 +585,7 @@ class _EvacScreenState extends ConsumerState<EvacScreen> {
             Expanded(
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
-                separatorBuilder: (_, __) => const SizedBox(width: 4),
+                separatorBuilder: (_, _) => const SizedBox(width: 4),
                 itemCount: labels.length,
                 itemBuilder: (context, index) {
                   final l = labels[index];

@@ -198,7 +198,7 @@ String _detectRegion(String title) {
       lower.contains('الإمارات') || lower.contains('دبي') || lower.contains('أبوظبي') ||
       lower.contains('الشارقة') || lower.contains('عجمان') || lower.contains('الفجيرة') ||
       lower.contains('رأس الخيمة') || lower.contains('العين') ||
-      lower.contains('moiuae') || lower.contains('ncema') || lower.contains('modgovae')) return 'UAE';
+      lower.contains('moiuae') || lower.contains('ncema') || lower.contains('modgovae')) { return 'UAE'; }
   if (lower.contains('saudi') || lower.contains('riyadh') || lower.contains('jeddah') || lower.contains('السعودية')) return 'KSA';
   if (lower.contains('kuwait') || lower.contains('الكويت')) return 'KUWAIT';
   if (lower.contains('bahrain') || lower.contains('البحرين')) return 'BAHRAIN';
@@ -224,7 +224,7 @@ AlertAuthority _detectAuthority(String region, String source) {
 AlertAuthority _detectInstagramAuthority(String handle) {
   if (handle.contains('ncaboron') || handle.contains('ncema')) return AlertAuthority.ncema;
   if (handle.contains('moiuae') || handle.contains('moaboron_sa') || handle.contains('moaboron_bh') ||
-      handle.contains('moaboron_kw') || handle.contains('moaboron_qa')) return AlertAuthority.moi;
+      handle.contains('moaboron_kw') || handle.contains('moaboron_qa')) { return AlertAuthority.moi; }
   if (handle.contains('modgovae') || handle.contains('modaboron') || handle.contains('modkuwait')) return AlertAuthority.mod;
   if (handle.contains('statedept')) return AlertAuthority.centcom;
   return AlertAuthority.coalition;
@@ -329,20 +329,20 @@ class EmergencyAlertsNotifier extends StateNotifier<EmergencyAlertsState> {
 
   Future<void> _init() async {
     _readHeadlines = await _loadReadAlerts();
-    print('[ALERTS] ════════════════════════════════════════');
-    print('[ALERTS] INIT: ${_readHeadlines.length} read headlines in cache');
+    debugPrint('[ALERTS] ════════════════════════════════════════');
+    debugPrint('[ALERTS] INIT: ${_readHeadlines.length} read headlines in cache');
     // ALWAYS clear on startup — ensure fresh alerts every launch.
     if (_readHeadlines.isNotEmpty) {
-      print('[ALERTS] CLEARING read-headlines cache (was ${_readHeadlines.length})');
+      debugPrint('[ALERTS] CLEARING read-headlines cache (was ${_readHeadlines.length})');
       _readHeadlines.clear();
       _saveReadAlerts(_readHeadlines);
     }
 
     final ws = BreachSocketService.instance;
-    print('[ALERTS] WebSocket connected: ${ws.connected}');
+    debugPrint('[ALERTS] WebSocket connected: ${ws.connected}');
 
     // ── START HTTP POLLING FIRST (most critical path) ───────────
-    print('[ALERTS] Starting HTTP polling immediately...');
+    debugPrint('[ALERTS] Starting HTTP polling immediately...');
     _startHttpPolling();
 
     // ── WS + FCM listeners (wrapped in try/catch so they never kill init) ──
@@ -351,9 +351,9 @@ class EmergencyAlertsNotifier extends StateNotifier<EmergencyAlertsState> {
         if (!mounted) return;
         _processHeadlines(data as List<dynamic>);
       });
-      print('[ALERTS] WS headlines listener OK');
+      debugPrint('[ALERTS] WS headlines listener OK');
     } catch (e) {
-      print('[ALERTS] WS headlines listener FAILED: $e');
+      debugPrint('[ALERTS] WS headlines listener FAILED: $e');
     }
 
     try {
@@ -369,9 +369,9 @@ class EmergencyAlertsNotifier extends StateNotifier<EmergencyAlertsState> {
           }
         } catch (_) {}
       });
-      print('[ALERTS] WS socmint listener OK');
+      debugPrint('[ALERTS] WS socmint listener OK');
     } catch (e) {
-      print('[ALERTS] WS socmint listener FAILED: $e');
+      debugPrint('[ALERTS] WS socmint listener FAILED: $e');
     }
 
     try {
@@ -386,9 +386,9 @@ class EmergencyAlertsNotifier extends StateNotifier<EmergencyAlertsState> {
       });
       final initial = await push.getInitialMessage();
       if (initial != null) _processPushNotification(initial);
-      print('[ALERTS] FCM listeners OK');
+      debugPrint('[ALERTS] FCM listeners OK');
     } catch (e) {
-      print('[ALERTS] FCM listeners FAILED: $e');
+      debugPrint('[ALERTS] FCM listeners FAILED: $e');
     }
 
     try {
@@ -400,9 +400,9 @@ class EmergencyAlertsNotifier extends StateNotifier<EmergencyAlertsState> {
           _startHttpPolling();
         }
       });
-      print('[ALERTS] WS connection listener OK');
+      debugPrint('[ALERTS] WS connection listener OK');
     } catch (e) {
-      print('[ALERTS] WS connection listener FAILED: $e');
+      debugPrint('[ALERTS] WS connection listener FAILED: $e');
     }
 
     // Auto-dismiss expired alerts every 1s
@@ -476,7 +476,7 @@ class EmergencyAlertsNotifier extends StateNotifier<EmergencyAlertsState> {
   void _processHeadlines(List<dynamic> headlines) {
     final newAlerts = <EmergencyAlert>[];
     final now = DateTime.now().millisecondsSinceEpoch;
-    print('[ALERTS] ── Processing ${headlines.length} headlines ──');
+    debugPrint('[ALERTS] ── Processing ${headlines.length} headlines ──');
 
     int skippedEmpty = 0, skippedSeen = 0, skippedRead = 0, skippedOld = 0, skippedNoLevel = 0, skippedPrefs = 0;
 
@@ -526,8 +526,8 @@ class EmergencyAlertsNotifier extends StateNotifier<EmergencyAlertsState> {
       ));
     }
 
-    print('[ALERTS] ── Results: ${newAlerts.length} alerts generated ──');
-    print('[ALERTS]   skipped: empty=$skippedEmpty seen=$skippedSeen read=$skippedRead old=$skippedOld noKeyword=$skippedNoLevel prefs=$skippedPrefs');
+    debugPrint('[ALERTS] ── Results: ${newAlerts.length} alerts generated ──');
+    debugPrint('[ALERTS]   skipped: empty=$skippedEmpty seen=$skippedSeen read=$skippedRead old=$skippedOld noKeyword=$skippedNoLevel prefs=$skippedPrefs');
 
     if (newAlerts.isNotEmpty) {
       const order = {AlertLevel.extreme: 0, AlertLevel.severe: 1, AlertLevel.moderate: 2};
@@ -673,7 +673,7 @@ class EmergencyAlertsNotifier extends StateNotifier<EmergencyAlertsState> {
     try {
       final headlines = await HeadlinesService.instance.fetchHeadlines();
       if (!mounted) return;
-      print('[ALERTS] HTTP poll fetched ${headlines.length} headlines');
+      debugPrint('[ALERTS] HTTP poll fetched ${headlines.length} headlines');
       _processHeadlines(headlines.map((h) => h as dynamic).toList());
     } catch (e) {
       debugPrint('[ALERTS] HTTP poll error: $e');

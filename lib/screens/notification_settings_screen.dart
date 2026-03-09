@@ -129,7 +129,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
           Switch.adaptive(
             value: prefs.enabled,
             onChanged: (v) => notifier.toggleEnabled(v),
-            activeColor: Palantir.accent,
+            activeTrackColor: Palantir.accent,
           ),
         ],
       ),
@@ -158,7 +158,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
               Switch.adaptive(
                 value: prefs.soundEnabled,
                 onChanged: prefs.enabled ? (v) => notifier.toggleSound(v) : null,
-                activeColor: Palantir.accent,
+                activeTrackColor: Palantir.accent,
               ),
             ],
           ),
@@ -499,7 +499,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
             Switch.adaptive(
               value: value,
               onChanged: enabled ? onChanged : null,
-              activeColor: color,
+              activeTrackColor: color,
             ),
           ],
         ),

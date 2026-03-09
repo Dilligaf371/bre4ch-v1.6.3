@@ -204,22 +204,22 @@ OsintItem? liveHeadlineToOsint(Map<String, dynamic> h) {
   }
 
   String region = 'Middle East';
-  if (lower.contains('uae') || lower.contains('dubai') || lower.contains('abu dhabi') || lower.contains('sharjah') || lower.contains('emirates') || lower.contains('الإمارات') || lower.contains('دبي')) region = 'UAE';
-  else if (lower.contains('iran') || lower.contains('tehran') || lower.contains('isfahan')) region = 'Iran';
-  else if (lower.contains('israel') || lower.contains('tel aviv') || lower.contains('jerusalem')) region = 'Israel';
-  else if (lower.contains('saudi') || lower.contains('riyadh') || lower.contains('jeddah') || lower.contains('ksa')) region = 'KSA';
-  else if (lower.contains('kuwait')) region = 'Kuwait';
-  else if (lower.contains('bahrain') || lower.contains('manama')) region = 'Bahrain';
-  else if (lower.contains('qatar') || lower.contains('doha')) region = 'Qatar';
-  else if (lower.contains('oman') || lower.contains('muscat')) region = 'Oman';
-  else if (lower.contains('jordan') || lower.contains('amman')) region = 'Jordan';
-  else if (lower.contains('lebanon') || lower.contains('beirut') || lower.contains('hezbollah')) region = 'Lebanon';
-  else if (lower.contains('iraq') || lower.contains('baghdad') || lower.contains('pmf')) region = 'Iraq';
-  else if (lower.contains('syria') || lower.contains('damascus')) region = 'Syria';
-  else if (lower.contains('yemen') || lower.contains('houthi') || lower.contains('sanaa')) region = 'Yemen';
-  else if (lower.contains('centcom') || lower.contains('pentagon') || lower.contains('washington')) region = 'USA';
-  else if (lower.contains('britain') || lower.contains('uk ')) region = 'UK';
-  else if (lower.contains('france') || lower.contains('french')) region = 'France';
+  if (lower.contains('uae') || lower.contains('dubai') || lower.contains('abu dhabi') || lower.contains('sharjah') || lower.contains('emirates') || lower.contains('الإمارات') || lower.contains('دبي')) { region = 'UAE'; }
+  else if (lower.contains('iran') || lower.contains('tehran') || lower.contains('isfahan')) { region = 'Iran'; }
+  else if (lower.contains('israel') || lower.contains('tel aviv') || lower.contains('jerusalem')) { region = 'Israel'; }
+  else if (lower.contains('saudi') || lower.contains('riyadh') || lower.contains('jeddah') || lower.contains('ksa')) { region = 'KSA'; }
+  else if (lower.contains('kuwait')) { region = 'Kuwait'; }
+  else if (lower.contains('bahrain') || lower.contains('manama')) { region = 'Bahrain'; }
+  else if (lower.contains('qatar') || lower.contains('doha')) { region = 'Qatar'; }
+  else if (lower.contains('oman') || lower.contains('muscat')) { region = 'Oman'; }
+  else if (lower.contains('jordan') || lower.contains('amman')) { region = 'Jordan'; }
+  else if (lower.contains('lebanon') || lower.contains('beirut') || lower.contains('hezbollah')) { region = 'Lebanon'; }
+  else if (lower.contains('iraq') || lower.contains('baghdad') || lower.contains('pmf')) { region = 'Iraq'; }
+  else if (lower.contains('syria') || lower.contains('damascus')) { region = 'Syria'; }
+  else if (lower.contains('yemen') || lower.contains('houthi') || lower.contains('sanaa')) { region = 'Yemen'; }
+  else if (lower.contains('centcom') || lower.contains('pentagon') || lower.contains('washington')) { region = 'USA'; }
+  else if (lower.contains('britain') || lower.contains('uk ')) { region = 'UK'; }
+  else if (lower.contains('france') || lower.contains('french')) { region = 'France'; }
 
   return OsintItem(
     id: _randomId('live'),
@@ -257,17 +257,15 @@ OsintPriority _mapPriority(String name) {
 // ── StateNotifier ────────────────────────────────────────────────
 
 class OsintNotifier extends StateNotifier<List<OsintItem>> {
-  OsintNotifier(this._ref) : super([]) {
+  OsintNotifier(Ref ref) : super([]) {
     _init();
   }
 
-  final Ref _ref;
   Timer? _headlineTimer;
   Timer? _centcomTimer;
   Timer? _persistTimer;
   final Set<String> _injected = {};
   final Set<String> _seenIds = {};
-  bool _cacheLoaded = false;
 
   StreamSubscription? _wsInitSub;
   StreamSubscription? _wsOsintSub;
@@ -280,7 +278,7 @@ class OsintNotifier extends StateNotifier<List<OsintItem>> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final raw = prefs.getString(_osintCacheKey);
-      if (raw == null || raw.isEmpty) { _cacheLoaded = true; return; }
+      if (raw == null || raw.isEmpty) { return; }
 
       final List<dynamic> decoded = jsonDecode(raw);
       final cutoff = DateTime.now().subtract(const Duration(days: _retentionDays)).millisecondsSinceEpoch;
@@ -300,9 +298,7 @@ class OsintNotifier extends StateNotifier<List<OsintItem>> {
         cached.sort((a, b) => b.timestamp.compareTo(a.timestamp));
         state = cached.take(_maxCachedItems).toList();
       }
-      _cacheLoaded = true;
     } catch (_) {
-      _cacheLoaded = true;
     }
   }
 

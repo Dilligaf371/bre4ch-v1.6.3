@@ -11,10 +11,7 @@ class AlertSoundService {
   AlertSoundService._();
   static final AlertSoundService instance = AlertSoundService._();
 
-  bool _enabled = true;
-
-  bool get enabled => _enabled;
-  set enabled(bool value) => _enabled = value;
+  bool enabled = true;
 
   /// Play is now handled by iOS notification system (default sound).
   /// This method is kept for API compatibility but is a no-op.
