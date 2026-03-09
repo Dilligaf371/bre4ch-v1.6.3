@@ -327,6 +327,20 @@ export async function startBriefingScheduler(getTweets, getHeadlines) {
 
   console.log(`[WATCHDOG] Briefing agent started — schedule: ${SCHEDULE_HOURS.map(h => h + ':00').join(' & ')} UTC — model: ${MODEL} — grounding: ${GROUNDING}`);
 
+  // Generate immediately on first boot if no briefing exists
+  if (!_latestBriefing) {
+    console.log('[WATCHDOG] No existing briefing found — generating initial briefing in 30s...');
+    setTimeout(async () => {
+      try {
+        const tweets = getTweets ? getTweets() : [];
+        const headlines = getHeadlines ? getHeadlines() : [];
+        await generateBriefing(tweets, headlines);
+      } catch (err) {
+        console.error(`[WATCHDOG] Initial generation error: ${err.message}`);
+      }
+    }, 30_000); // Wait 30s for RSS feeds to populate first
+  }
+
   // Schedule the next fixed-time briefing
   scheduleNext(getTweets, getHeadlines);
 }

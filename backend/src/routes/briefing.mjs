@@ -11,6 +11,8 @@ import {
   getBriefingStatus,
   generateBriefing,
 } from '../services/briefing-agent.mjs';
+import { getCachedHeadlines } from './sources.mjs';
+import { getCachedTweets } from '../scrapers/x-scraper.mjs';
 import { requireAdmin } from '../middleware/auth.mjs';
 import { adminLimiter } from '../middleware/rate-limit.mjs';
 
@@ -39,7 +41,9 @@ router.get('/briefing/status', (_req, res) => {
 
 router.post('/briefing/generate', requireAdmin, adminLimiter, async (_req, res) => {
   try {
-    const result = await generateBriefing();
+    const tweets = getCachedTweets() || [];
+    const headlines = getCachedHeadlines() || [];
+    const result = await generateBriefing(tweets, headlines);
     if (!result) {
       return res.status(503).json({ ok: false, error: 'Generation unavailable or already in progress' });
     }

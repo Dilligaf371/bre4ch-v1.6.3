@@ -4,7 +4,7 @@ import { PORT, OLLAMA_URL, ULTRON_MODEL, ULTRON_SOUL, ANTHROPIC_API_KEY, LIVEUAM
 import { startWsServer } from './services/ws-server.mjs';
 import ultronRouter, { ultronSessions } from './routes/ultron.mjs';
 import c2Router, { c2Sessions } from './routes/c2.mjs';
-import sourcesRouter, { startRefreshScheduler } from './routes/sources.mjs';
+import sourcesRouter, { startRefreshScheduler, getCachedHeadlines } from './routes/sources.mjs';
 import centcomRouter from './routes/centcom.mjs';
 import airportsRouter from './routes/airports.mjs';
 import forcesRouter, { startWarStateWatcher } from './routes/forces.mjs';
@@ -17,7 +17,7 @@ import xMonitorRouter from "./routes/x-monitor.mjs";
 import briefingRouter from "./routes/briefing.mjs";
 import sourceOverlayRouter, { startSourceOverlayWatcher } from "./routes/source-overlay.mjs";
 import { startBriefingScheduler } from "./services/briefing-agent.mjs";
-import { startXScraperScheduler } from './scrapers/x-scraper.mjs';
+import { startXScraperScheduler, getCachedTweets } from './scrapers/x-scraper.mjs';
 
 // ─── Security middleware (v1.8.2) ───
 import { initAuth } from './middleware/auth.mjs';
@@ -204,7 +204,7 @@ server.listen(PORT, () => {
   startRefreshScheduler();
   startDefenseScraperScheduler();
   startXScraperScheduler();
-  startBriefingScheduler();
+  startBriefingScheduler(getCachedTweets, getCachedHeadlines);
   startSourceOverlayWatcher();
   startWarStateWatcher();
 

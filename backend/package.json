@@ -4,8 +4,7 @@
   "version": "2.0.0",
   "type": "module",
   "scripts": {
-    "dev": "cp .env.dev .env && node src/server.mjs",
-    "prod": "node src/server.mjs",
+    "dev": "node src/server.mjs",
     "start": "node src/server.mjs"
   },
   "dependencies": {
