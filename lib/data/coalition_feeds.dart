@@ -1,6 +1,6 @@
 // =============================================================================
 // BRE4CH - Coalition Epic Fury (US-Led) Feeds
-// Day 3 (Mar 3, 2026) -- Operation Epic Fury / Roar of the Lion
+// Day 10 (Mar 9, 2026) -- Operation Epic Fury / Roar of the Lion
 // NATO STANAG 2022: [A-F] Reliability / [1-6] Credibility
 // OFF = Offensive ops | DEF = Defensive ops
 // =============================================================================
@@ -89,14 +89,14 @@ const List<CountryFeed> coalitionFeeds = [
       StatItem(label: 'EW SUPPORT OPS', value: 3, color: 'text-purple-400', bgColor: 'bg-purple-500/20'),
     ],
     defensive: [
-      StatItem(label: 'THAAD INTERCEPT', value: 97, color: 'text-green-400', bgColor: 'bg-green-500/20'),
-      StatItem(label: 'PATRIOT PAC-3 [BM]', value: 165, color: 'text-green-400', bgColor: 'bg-green-500/20'),
-      StatItem(label: 'C-UAS INTERCEPT', value: 541, color: 'text-green-400', bgColor: 'bg-green-500/20'),
-      StatItem(label: 'UAS PENETRATIONS', value: 21, color: 'text-red-400', bgColor: 'bg-red-500/20'),
+      StatItem(label: 'THAAD INTERCEPT', value: 103, color: 'text-green-400', bgColor: 'bg-green-500/20'),
+      StatItem(label: 'PATRIOT PAC-3 [BM]', value: 175, color: 'text-green-400', bgColor: 'bg-green-500/20'),
+      StatItem(label: 'C-UAS INTERCEPT', value: 1342, color: 'text-green-400', bgColor: 'bg-green-500/20'),
+      StatItem(label: 'UAS PENETRATIONS', value: 80, color: 'text-red-400', bgColor: 'bg-red-500/20'),
       StatItem(label: 'KIA', value: 3, color: 'text-red-400', bgColor: 'bg-red-500/20'),
       StatItem(label: 'WIA', value: 58, color: 'text-orange-400', bgColor: 'bg-orange-500/20'),
     ],
-    source: 'UAE MoD / Al Jazeera [A2]',
+    source: 'MOD UAE (@modgovae) / WAM [A1]',
   ),
 
   // --- KSA ---

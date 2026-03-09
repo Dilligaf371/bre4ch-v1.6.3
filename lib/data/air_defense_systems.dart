@@ -4,7 +4,7 @@
 //          SPA, Arab News, MOD Oman, IDF Spokesperson, CENTCOM
 // Interception stats: Cumulative since mission start (28 FEB 2026 02:00 UTC)
 // All sourceDate timestamps are UTC publication time of the cited source.
-// Last verified: 2026-03-08
+// Last verified: 2026-03-09
 // =============================================================================
 
 import '../models/air_defense_system.dart';
@@ -14,11 +14,11 @@ final DateTime missionStart = DateTime.utc(2026, 2, 28, 2, 0, 0);
 
 final List<AirDefenseSystem> coalitionAirDefense = [
   // ── UAE ────────────────────────────────────────────────────────────
-  // Source: @modgovae on X / WAM — posted 7 Mar 2026 ~14:22 GST (10:22 UTC)
-  // Stats (MOD UAE infographic 07-03-2026):
-  //   BM:     221 detected → 205 intercepted / 14 impacts at sea / 2 impacts on land
+  // Source: @modgovae on X / WAM — posted 8 Mar 2026 ~14:22 GST (10:22 UTC)
+  // Stats (MOD UAE infographic 08-03-2026):
+  //   BM:     238 detected → 221 intercepted / 15 impacts at sea / 2 impacts on land
   //   CM:       8 detected →   8 intercepted (100%)
-  //   UAVs: 1305 detected → 1229 intercepted / 76 impacts on land
+  //   UAVs: 1422 detected → 1342 intercepted / 80 impacts on land
 
   AirDefenseSystem(
     id: 'ad-uae-dhafra',
@@ -37,20 +37,20 @@ final List<AirDefenseSystem> coalitionAirDefense = [
         'Primary IAMD hub for UAE defense. UAE-owned THAAD battery (first non-US '
         'operator, operational since 2015), US Patriot PAC-3, Korean Cheongung-II '
         '(M-SAM, 96% hit rate in combat debut), and Israeli Barak ER.\n'
-        'BM: 221 detected → 205 intercepted (14 sea / 2 land impacts).\n'
+        'BM: 238 detected → 221 intercepted (15 sea / 2 land impacts).\n'
         'CM: 8 detected → 8 intercepted (100%).\n'
-        'UAVs: 1305 detected → 1229 intercepted (76 land impacts).\n'
-        'Source: MOD UAE official infographic, 7 March 2026.',
+        'UAVs: 1422 detected → 1342 intercepted (80 land impacts).\n'
+        'Source: MOD UAE official infographic, 8 March 2026.',
     stats: InterceptionStats(
-      ballisticIntercepted: 205,
+      ballisticIntercepted: 221,
       cruiseIntercepted: 8,
-      droneIntercepted: 1229,
-      totalIntercepted: 1442,
-      lastUpdated: '2026-03-07',
+      droneIntercepted: 1342,
+      totalIntercepted: 1571,
+      lastUpdated: '2026-03-08',
     ),
     sourceLabel: '@modgovae (X)',
     sourceUrl: 'https://x.com/modgovae/status/2030241691115126947',
-    sourceDate: DateTime.utc(2026, 3, 7, 10, 22),
+    sourceDate: DateTime.utc(2026, 3, 8, 10, 22),
     baseName: 'Al Dhafra Air Base',
     operator: 'UAE Armed Forces / US CENTCOM',
   ),

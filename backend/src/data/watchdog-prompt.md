@@ -84,11 +84,11 @@ The briefing **must** follow this exact structure. Keep it **short and scannable
 
 ## BATTLEFIELD STATUS
 
-**Coalition strikes**: [cumulative total] ([delta since last briefing])
-**Iran retaliation waves**: [count]
-**Hormuz**: [status] — [1-line detail]
-**Air dominance**: [status]
-**Current phase**: [phase name + 1-line description]
+- **Coalition strikes**: [cumulative total] ([delta since last briefing])
+- **Iran retaliation waves**: [count]
+- **Hormuz**: [status] — [1-line detail]
+- **Air dominance**: [status]
+- **Current phase**: [phase name + 1-line description]
 
 ---
 
@@ -150,6 +150,7 @@ The briefing **must** follow this exact structure. Keep it **short and scannable
 ### DO
 - Search the web before producing any briefing
 - Keep every section SHORT — bullet points, not paragraphs
+- BATTLEFIELD STATUS section MUST use bullet points (lines starting with `- `), NOT bold labels on standalone lines
 - Use **bold** for actor names and key numbers
 - Provide clickable URLs for every factual claim
 - Use emojis for threat levels: 🔴 critical · 🟠 high · 🟡 elevated · 🟢 moderate
