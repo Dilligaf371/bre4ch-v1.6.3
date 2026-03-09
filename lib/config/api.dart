@@ -42,6 +42,7 @@ class Api {
   static String get briefingLatest => '$base/api/briefing/latest';
   static String get briefingStatus => '$base/api/briefing/status';
   static String get sourceOverlay => '$base/api/source-overlay';
+  static String get warState => '$base/api/war-state';
 }
 
 // ── Poll Intervals (ms) ──────────────────────────────────────────
@@ -62,6 +63,7 @@ class PollIntervals {
   static const Duration defenseStats = Duration(seconds: 120);
   static const Duration briefing = Duration(minutes: 5);
   static const Duration sourceOverlay = Duration(minutes: 10);
+  static const Duration warState = Duration(minutes: 10);
 }
 
 // ── Cache TTL per endpoint ───────────────────────────────────────

@@ -22,6 +22,7 @@ enum WsMessageType {
   headlines,
   detection,
   sourceOverlay,
+  warState,
   ping,
 }
 
@@ -157,6 +158,7 @@ class BreachSocketService {
       case 'headlines': return WsMessageType.headlines;
       case 'detection':      return WsMessageType.detection;
       case 'source_overlay': return WsMessageType.sourceOverlay;
+      case 'war_state':      return WsMessageType.warState;
       case 'ping':           return WsMessageType.ping;
       default:          return null;
     }

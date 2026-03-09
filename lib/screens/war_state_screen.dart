@@ -12,6 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../config/theme.dart';
 import '../models/military_position.dart';
 import '../providers/defense_stats_provider.dart';
+import '../providers/war_state_entities_provider.dart';
 import '../widgets/common/header_bar.dart';
 import '../widgets/common/palantir_card.dart';
 import '../widgets/common/collapsible_section.dart';
@@ -643,23 +644,65 @@ class _WarStateScreenState extends ConsumerState<WarStateScreen> {
     }).toList();
   }
 
+  /// Apply war-state overlay: override stat values + sourceLabel/sourceUrl
+  /// from the server-side war-state.json pushed via WebSocket.
+  List<_StakeholderEntity> _applyWarStateOverlay(
+    List<_StakeholderEntity> nations,
+    WarStateEntitiesState warState,
+  ) {
+    if (warState.entities.isEmpty) return nations;
+    return nations.map((nation) {
+      final overlay = warState.entities[nation.code];
+      if (overlay == null) return nation;
+
+      // Override stat values where the overlay provides them
+      final newStats = nation.stats.map((stat) {
+        final overrideValue = overlay.stats[stat.label];
+        if (overrideValue == null) return stat;
+        return _VerifiedStat(
+          stat.label,
+          overrideValue,
+          isOffensive: stat.isOffensive,
+          stanag: stat.stanag,
+          srcUrl: stat.srcUrl,
+        );
+      }).toList();
+
+      return _StakeholderEntity(
+        flag: nation.flag,
+        name: nation.name,
+        code: nation.code,
+        live: nation.live,
+        sourceLabel: overlay.sourceLabel ?? nation.sourceLabel,
+        sourceUrl: overlay.sourceUrl ?? nation.sourceUrl,
+        stats: newStats,
+      );
+    }).toList();
+  }
+
   List<_StakeholderEntity> get _filteredCoalition {
     final defenseState = ref.watch(defenseStatsProvider);
+    final warState = ref.watch(warStateEntitiesProvider);
     final enriched = _enrichWithDefenseStats(_coalitionNations, defenseState);
-    if (_selectedCountry == 'ALL') return enriched;
-    return enriched.where((n) => n.code == _selectedCountry).toList();
+    final overlaid = _applyWarStateOverlay(enriched, warState);
+    if (_selectedCountry == 'ALL') return overlaid;
+    return overlaid.where((n) => n.code == _selectedCountry).toList();
   }
 
   List<_StakeholderEntity> get _filteredAxis {
-    if (_selectedCountry == 'ALL') return _axisEntities;
-    return _axisEntities.where((n) => n.code == _selectedCountry).toList();
+    final warState = ref.watch(warStateEntitiesProvider);
+    final overlaid = _applyWarStateOverlay(_axisEntities, warState);
+    if (_selectedCountry == 'ALL') return overlaid;
+    return overlaid.where((n) => n.code == _selectedCountry).toList();
   }
 
   List<_StakeholderEntity> get _filteredNonBelligerents {
     final defenseState = ref.watch(defenseStatsProvider);
+    final warState = ref.watch(warStateEntitiesProvider);
     final enriched = _enrichWithDefenseStats(_nonBelligerents, defenseState);
-    if (_selectedCountry == 'ALL') return enriched;
-    return enriched.where((n) => n.code == _selectedCountry).toList();
+    final overlaid = _applyWarStateOverlay(enriched, warState);
+    if (_selectedCountry == 'ALL') return overlaid;
+    return overlaid.where((n) => n.code == _selectedCountry).toList();
   }
 
   bool get _isCoalitionFilter =>
@@ -762,7 +805,8 @@ class _WarStateScreenState extends ConsumerState<WarStateScreen> {
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            if (ref.watch(defenseStatsProvider).loaded) ...[
+                            if (ref.watch(defenseStatsProvider).loaded ||
+                                ref.watch(warStateEntitiesProvider).loaded) ...[
                               const PulsingDot(color: NatoColors.friendly, size: 4),
                               const SizedBox(width: 4),
                               Text('LIVE', style: AppTextStyles.mono(size: 8, color: NatoColors.friendly)),
@@ -790,13 +834,24 @@ class _WarStateScreenState extends ConsumerState<WarStateScreen> {
                         title: 'AXIS OF RESISTANCE',
                         titleColor: NatoColors.hostile,
                         initiallyExpanded: _selectedCountry != 'ALL' && _isAxisFilter,
-                        trailing: Text(
-                          '${axisFiltered.length} ${axisFiltered.length == 1 ? 'ENTITY' : 'ENTITIES'}',
-                          style: AppTextStyles.mono(
-                            size: 10,
-                            color: Palantir.textMuted,
-                            letterSpacing: 1.0,
-                          ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (ref.watch(warStateEntitiesProvider).loaded) ...[
+                              const PulsingDot(color: NatoColors.hostile, size: 4),
+                              const SizedBox(width: 4),
+                              Text('LIVE', style: AppTextStyles.mono(size: 8, color: NatoColors.hostile)),
+                              const SizedBox(width: 6),
+                            ],
+                            Text(
+                              '${axisFiltered.length} ${axisFiltered.length == 1 ? 'ENTITY' : 'ENTITIES'}',
+                              style: AppTextStyles.mono(
+                                size: 10,
+                                color: Palantir.textMuted,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
+                          ],
                         ),
                         child: Column(
                           children: axisFiltered

@@ -7,7 +7,7 @@ import c2Router, { c2Sessions } from './routes/c2.mjs';
 import sourcesRouter, { startRefreshScheduler } from './routes/sources.mjs';
 import centcomRouter from './routes/centcom.mjs';
 import airportsRouter from './routes/airports.mjs';
-import forcesRouter from './routes/forces.mjs';
+import forcesRouter, { startWarStateWatcher } from './routes/forces.mjs';
 import cyberRouter from './routes/cyber.mjs';
 import statsRouter from './routes/stats.mjs';
 import defenseRouter from './routes/defense.mjs';
@@ -206,6 +206,7 @@ server.listen(PORT, () => {
   startXScraperScheduler();
   startBriefingScheduler();
   startSourceOverlayWatcher();
+  startWarStateWatcher();
 
   // Scan headlines for push notifications every 60s
   setInterval(() => scanAndNotify(), 60_000);
