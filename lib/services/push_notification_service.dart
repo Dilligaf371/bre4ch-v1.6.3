@@ -217,12 +217,41 @@ class PushNotificationService {
     return (prefs.getStringList('fcm_subscriptions') ?? []).toSet();
   }
 
+  /// Clears ALL persisted FCM subscriptions.
+  /// Called by nuclear unsubscribe when user disables notifications.
+  Future<void> clearAllSubscriptions() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('fcm_subscriptions', []);
+    debugPrint('[FCM] Cleared all persisted subscriptions');
+  }
+
   Future<void> _restoreSubscriptions() async {
+    // Only restore if there are saved subscriptions.
+    // The notification_preferences_provider controls what topics
+    // should be active via _syncAllSubscriptions() after initialize().
+    // We skip blind restore here to prevent re-subscribing to stale
+    // severity/type topics that were cleaned up.
     final subs = await getActiveSubscriptions();
-    for (final topic in subs) {
-      await _messaging.subscribeToTopic(topic);
+    if (subs.isEmpty) {
+      debugPrint('[FCM] No saved subscriptions to restore');
+      return;
     }
-    debugPrint('[FCM] Restored ${subs.length} subscriptions');
+    // Only restore country/city/all topics — skip legacy severity/type
+    int restored = 0;
+    for (final topic in subs) {
+      if (topic.startsWith('breach_country_') ||
+          topic.startsWith('breach_city_') ||
+          topic == 'breach_all') {
+        await _messaging.subscribeToTopic(topic);
+        restored++;
+      } else {
+        // Legacy topic (severity/type) — unsubscribe + remove from list
+        await _messaging.unsubscribeFromTopic(topic);
+        await _saveSubscription(topic, false);
+        debugPrint('[FCM] Cleaned up legacy topic: $topic');
+      }
+    }
+    debugPrint('[FCM] Restored $restored subscriptions (cleaned ${subs.length - restored} legacy)');
   }
 
   // ── Backend Registration ──────────────────────────────────────────

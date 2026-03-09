@@ -81,11 +81,16 @@ const MAX_SENT = 500;
 async function sendTopicNotification(headline, severity, region, type, source) {
   if (!messaging) return;
 
+  // ── Topic strategy (v1.8.2 fix) ────────────────────────────────
+  // Only use breach_all (global) + country/city topics.
+  // Severity & type topics were causing cross-contamination:
+  //   e.g. subscribing to UAE still received ALL "extreme" alerts
+  //   because the device was also on breach_severity_extreme.
+  // Severity/type filtering is now client-side only.
   const topics = new Set();
-  topics.add(`breach_severity_${severity}`);
+  topics.add('breach_all');
   if (region.country) topics.add(`breach_country_${region.country}`);
   if (region.city) topics.add(`breach_city_${region.city}`);
-  topics.add(`breach_type_${type}`);
 
   const collapseKey = `breach_${Buffer.from(headline).toString('base64url').slice(0, 32)}`;
 

@@ -189,7 +189,7 @@ class NotificationPreferencesNotifier
         debugPrint('[NOTIF] Enable sync error: $e');
       });
     } else {
-      _unsubscribeAll().catchError((e) {
+      _nuclearUnsubscribe().catchError((e) {
         debugPrint('[NOTIF] Disable sync error: $e');
       });
     }
@@ -229,14 +229,22 @@ class NotificationPreferencesNotifier
     }
     state = state.copyWith(countries: updated);
     await _save();
-    // FCM sync in background
+    // FCM sync in background — manage breach_all vs country-specific
     _syncFcm(() async {
       if (subscribe) {
         await _push.subscribeToCountry(code);
+        // First country added → leave breach_all so we only get this country
+        if (updated.length == 1) {
+          await _push.unsubscribeFromTopic('all');
+        }
       } else {
         await _push.unsubscribeFromCountry(code);
         for (final city in citiesByCountry[code]?.keys ?? <String>[]) {
           await _push.unsubscribeFromCity(city);
+        }
+        // Last country removed → go back to breach_all (global)
+        if (updated.isEmpty) {
+          await _push.subscribeToTopic('all');
         }
       }
     });
@@ -265,9 +273,8 @@ class NotificationPreferencesNotifier
     }
     state = state.copyWith(types: updated);
     await _save();
-    _syncFcm(() => subscribe
-        ? _push.subscribeToType(type)
-        : _push.unsubscribeFromType(type));
+    // Type filtering is client-side only (no FCM topic).
+    // FCM topics for type caused cross-contamination with country filters.
   }
 
   Future<void> toggleSeverity(String level, bool subscribe) async {
@@ -279,9 +286,8 @@ class NotificationPreferencesNotifier
     }
     state = state.copyWith(severities: updated);
     await _save();
-    _syncFcm(() => subscribe
-        ? _push.subscribeToSeverity(level)
-        : _push.unsubscribeFromSeverity(level));
+    // Severity filtering is client-side only (no FCM topic).
+    // FCM topics for severity caused cross-contamination with country filters.
   }
 
   /// Fire-and-forget FCM sync — never blocks UI
@@ -293,35 +299,60 @@ class NotificationPreferencesNotifier
   }
 
   Future<void> _syncAllSubscriptions() async {
-    for (final c in state.countries) {
-      try { await _push.subscribeToCountry(c); } catch (_) {}
-    }
-    for (final c in state.cities) {
-      try { await _push.subscribeToCity(c); } catch (_) {}
-    }
-    for (final t in state.types) {
-      try { await _push.subscribeToType(t); } catch (_) {}
-    }
-    for (final s in state.severities) {
-      try { await _push.subscribeToSeverity(s); } catch (_) {}
-    }
-    debugPrint('[NOTIF] Synced all subscriptions');
-  }
+    // ── v1.8.2 fix: only use breach_all + country topics ──
+    // Severity/type topics caused cross-contamination (e.g. subscribing to
+    // UAE still received ALL "extreme" alerts worldwide).
 
-  Future<void> _unsubscribeAll() async {
-    for (final c in state.countries) {
-      try { await _push.unsubscribeFromCountry(c); } catch (_) {}
-    }
-    for (final c in state.cities) {
-      try { await _push.unsubscribeFromCity(c); } catch (_) {}
-    }
-    for (final t in state.types) {
-      try { await _push.unsubscribeFromType(t); } catch (_) {}
-    }
-    for (final s in state.severities) {
+    // 1. Clean up legacy severity/type FCM topics
+    for (final s in availableSeverities.keys) {
       try { await _push.unsubscribeFromSeverity(s); } catch (_) {}
     }
-    debugPrint('[NOTIF] Unsubscribed from all');
+    for (final t in availableTypes.keys) {
+      try { await _push.unsubscribeFromType(t); } catch (_) {}
+    }
+
+    // 2. Subscribe to correct topics
+    if (state.countries.isEmpty) {
+      // No country filter → subscribe to breach_all (global)
+      try { await _push.subscribeToTopic('all'); } catch (_) {}
+    } else {
+      // Country filter active → specific country topics only
+      try { await _push.unsubscribeFromTopic('all'); } catch (_) {}
+      for (final c in state.countries) {
+        try { await _push.subscribeToCountry(c); } catch (_) {}
+      }
+      for (final c in state.cities) {
+        try { await _push.subscribeToCity(c); } catch (_) {}
+      }
+    }
+    debugPrint('[NOTIF] Synced subscriptions (countries: ${state.countries}, breach_all: ${state.countries.isEmpty})');
+  }
+
+  /// Nuclear unsubscribe — clears ALL known FCM topics regardless of state.
+  /// Called when user disables notifications entirely.
+  Future<void> _nuclearUnsubscribe() async {
+    // breach_all
+    try { await _push.unsubscribeFromTopic('all'); } catch (_) {}
+    // ALL known countries (not just state.countries — catches stale subs)
+    for (final c in availableCountries.keys) {
+      try { await _push.unsubscribeFromCountry(c); } catch (_) {}
+    }
+    // ALL known cities
+    for (final country in citiesByCountry.entries) {
+      for (final city in country.value.keys) {
+        try { await _push.unsubscribeFromCity(city); } catch (_) {}
+      }
+    }
+    // Legacy severity/type topics (clean up old subscriptions)
+    for (final s in availableSeverities.keys) {
+      try { await _push.unsubscribeFromSeverity(s); } catch (_) {}
+    }
+    for (final t in availableTypes.keys) {
+      try { await _push.unsubscribeFromType(t); } catch (_) {}
+    }
+    // Clear persisted subscription list
+    await _push.clearAllSubscriptions();
+    debugPrint('[NOTIF] Nuclear unsubscribe complete');
   }
 }
 
