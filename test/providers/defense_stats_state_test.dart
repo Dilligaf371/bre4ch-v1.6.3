@@ -15,22 +15,28 @@ void main() {
       expect(state.mergedSystems.length, coalitionAirDefense.length);
     });
 
-    test('merges dynamic stats for matching system IDs', () {
+    test('merges dynamic stats using monotonic max', () {
+      // Use values ALL higher than hardcoded to test straightforward merge
+      final base = coalitionAirDefense.first.stats;
       final dynamicStats = {
-        coalitionAirDefense.first.id: const InterceptionStats(
-          ballisticIntercepted: 999,
-          cruiseIntercepted: 888,
-          droneIntercepted: 777,
-          totalIntercepted: 2664,
-          lastUpdated: '2026-03-08T14:00:00Z',
+        coalitionAirDefense.first.id: InterceptionStats(
+          ballisticIntercepted: base.ballisticIntercepted + 100,
+          cruiseIntercepted: base.cruiseIntercepted + 50,
+          droneIntercepted: base.droneIntercepted + 200,
+          totalIntercepted: 0, // ignored — recalculated
+          lastUpdated: '2026-03-09T14:00:00Z',
         ),
       };
       final state = DefenseStatsState(dynamicStats: dynamicStats);
       final merged = state.mergedSystems;
 
-      // First system should have updated stats
-      expect(merged.first.stats.ballisticIntercepted, 999);
-      expect(merged.first.stats.totalIntercepted, 2664);
+      // Monotonic: takes max of each field
+      expect(merged.first.stats.ballisticIntercepted, base.ballisticIntercepted + 100);
+      expect(merged.first.stats.cruiseIntercepted, base.cruiseIntercepted + 50);
+      expect(merged.first.stats.droneIntercepted, base.droneIntercepted + 200);
+      // Total is recalculated from component maxes
+      expect(merged.first.stats.totalIntercepted,
+          base.ballisticIntercepted + 100 + base.cruiseIntercepted + 50 + base.droneIntercepted + 200);
 
       // Other systems should keep hardcoded stats
       if (coalitionAirDefense.length > 1) {

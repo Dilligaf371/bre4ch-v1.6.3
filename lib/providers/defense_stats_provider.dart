@@ -55,13 +55,33 @@ class DefenseStatsState {
   }
 
   /// Returns the [AirDefenseSystem] list with dynamic stats merged in.
-  /// If no dynamic data available for a given system, its hardcoded stats
-  /// are preserved.
+  /// Uses monotonic merge: takes the MAX of hardcoded vs API for each field,
+  /// so API data never downgrades hardcoded baseline stats.
   List<AirDefenseSystem> get mergedSystems {
     if (dynamicStats.isEmpty) return coalitionAirDefense;
     return coalitionAirDefense.map((system) {
-      final updated = dynamicStats[system.id];
-      return updated != null ? system.copyWith(stats: updated) : system;
+      final api = dynamicStats[system.id];
+      if (api == null) return system;
+      final base = system.stats;
+      final ballistic = api.ballisticIntercepted > base.ballisticIntercepted
+          ? api.ballisticIntercepted
+          : base.ballisticIntercepted;
+      final cruise = api.cruiseIntercepted > base.cruiseIntercepted
+          ? api.cruiseIntercepted
+          : base.cruiseIntercepted;
+      final drone = api.droneIntercepted > base.droneIntercepted
+          ? api.droneIntercepted
+          : base.droneIntercepted;
+      final merged = InterceptionStats(
+        ballisticIntercepted: ballistic,
+        cruiseIntercepted: cruise,
+        droneIntercepted: drone,
+        totalIntercepted: ballistic + cruise + drone,
+        lastUpdated: api.lastUpdated.compareTo(base.lastUpdated) > 0
+            ? api.lastUpdated
+            : base.lastUpdated,
+      );
+      return system.copyWith(stats: merged);
     }).toList();
   }
 

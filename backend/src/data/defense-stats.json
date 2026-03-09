@@ -1,11 +1,11 @@
 {
   "stats": {
     "ad-uae-dhafra": {
-      "ballisticIntercepted": 205,
+      "ballisticIntercepted": 221,
       "cruiseIntercepted": 8,
-      "droneIntercepted": 1229,
-      "totalIntercepted": 1442,
-      "lastUpdated": "2026-03-07T10:22:00Z"
+      "droneIntercepted": 1342,
+      "totalIntercepted": 1571,
+      "lastUpdated": "2026-03-08T10:22:00Z"
     },
     "ad-kw-arifjan": {
       "ballisticIntercepted": 97,
