@@ -15,6 +15,7 @@ import '../../data/missile_sites.dart';
 import '../../models/missile_site.dart';
 import '../../models/air_defense_system.dart';
 import '../../providers/defense_stats_provider.dart';
+import '../../providers/source_overlay_provider.dart';
 import '../../services/cached_tile_provider.dart';
 import '../../widgets/common/filter_chip_row.dart';
 import 'missile_site_sheet.dart';
@@ -54,7 +55,8 @@ class _ConflictMapViewState extends ConsumerState<ConflictMapView> {
   Widget build(BuildContext context) {
     // Watch defense stats provider for dynamic interception data
     final defenseState = ref.watch(defenseStatsProvider);
-    final mergedSystems = defenseState.mergedSystems;
+    final overlay = ref.watch(sourceOverlayProvider);
+    final mergedSystems = overlay.applyToAirDefense(defenseState.mergedSystems);
 
     return Column(
       children: [
@@ -299,8 +301,10 @@ class _ConflictMapViewState extends ConsumerState<ConflictMapView> {
   }
 
   List<MissileSite> _filteredMissileSites() {
-    if (_missileStatusFilter.contains('ALL')) return iranianMissileSites;
-    return iranianMissileSites.where((site) {
+    final overlay = ref.read(sourceOverlayProvider);
+    final sites = overlay.applyToMissileSites(iranianMissileSites);
+    if (_missileStatusFilter.contains('ALL')) return sites;
+    return sites.where((site) {
       return _missileStatusFilter.contains(site.status.label);
     }).toList();
   }

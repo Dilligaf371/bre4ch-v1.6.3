@@ -136,8 +136,14 @@ class AirDefenseSystem {
     return '${sourceDate.day} ${months[sourceDate.month]} ${sourceDate.year} · $h:$m UTC';
   }
 
-  /// Returns a copy with updated [InterceptionStats] (for dynamic API data).
-  AirDefenseSystem copyWith({InterceptionStats? stats}) {
+  /// Returns a copy with updated fields (for dynamic API/overlay data).
+  AirDefenseSystem copyWith({
+    InterceptionStats? stats,
+    String? description,
+    String? sourceLabel,
+    String? sourceUrl,
+    DateTime? sourceDate,
+  }) {
     return AirDefenseSystem(
       id: id,
       name: name,
@@ -146,11 +152,11 @@ class AirDefenseSystem {
       systems: systems,
       lat: lat,
       lng: lng,
-      description: description,
+      description: description ?? this.description,
       stats: stats ?? this.stats,
-      sourceLabel: sourceLabel,
-      sourceUrl: sourceUrl,
-      sourceDate: sourceDate,
+      sourceLabel: sourceLabel ?? this.sourceLabel,
+      sourceUrl: sourceUrl ?? this.sourceUrl,
+      sourceDate: sourceDate ?? this.sourceDate,
       baseName: baseName,
       operator: operator,
     );

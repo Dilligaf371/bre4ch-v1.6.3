@@ -15,6 +15,7 @@ import { startDefenseScraperScheduler } from './scrapers/defense-scraper.mjs';
 import notificationsRouter, { scanAndNotify } from './routes/notifications.mjs';
 import xMonitorRouter from "./routes/x-monitor.mjs";
 import briefingRouter from "./routes/briefing.mjs";
+import sourceOverlayRouter, { startSourceOverlayWatcher } from "./routes/source-overlay.mjs";
 import { startBriefingScheduler } from "./services/briefing-agent.mjs";
 import { startXScraperScheduler } from './scrapers/x-scraper.mjs';
 
@@ -52,6 +53,7 @@ app.use('/api', defenseRouter);
 app.use('/api', xMonitorRouter);
 app.use('/api', notificationsRouter);
 app.use('/api', briefingRouter);
+app.use('/api', sourceOverlayRouter);
 
 // ─── Privacy Policy & Support ───
 app.get('/privacy', (_req, res) => {
@@ -203,6 +205,7 @@ server.listen(PORT, () => {
   startDefenseScraperScheduler();
   startXScraperScheduler();
   startBriefingScheduler();
+  startSourceOverlayWatcher();
 
   // Scan headlines for push notifications every 60s
   setInterval(() => scanAndNotify(), 60_000);

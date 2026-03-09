@@ -69,6 +69,34 @@ class MissileSite {
     return '${diff.inDays}d ago';
   }
 
+  /// Returns a copy with updated source fields (for dynamic overlay data).
+  MissileSite copyWith({
+    String? description,
+    String? sourceLabel,
+    String? sourceUrl,
+    DateTime? sourceDate,
+  }) {
+    return MissileSite(
+      id: id,
+      name: name,
+      nameLocal: nameLocal,
+      type: type,
+      status: status,
+      lat: lat,
+      lng: lng,
+      country: country,
+      operator: operator,
+      description: description ?? this.description,
+      sourceLabel: sourceLabel ?? this.sourceLabel,
+      sourceUrl: sourceUrl ?? this.sourceUrl,
+      sourceDate: sourceDate ?? this.sourceDate,
+      photoUrl: photoUrl,
+      photoCaption: photoCaption,
+      lastStrikeDate: lastStrikeDate,
+      strikeDetails: strikeDetails,
+    );
+  }
+
   /// Formatted source timestamp: "1 MAR 2026 · 06:15 UTC"
   String get sourceTimestamp {
     const months = [
