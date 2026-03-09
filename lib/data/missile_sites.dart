@@ -1,9 +1,10 @@
 // =============================================================================
 // BRE4CH - Iranian Military Strike Targets
 // Comprehensive list of all US (CENTCOM) and Israeli (IDF) strike targets
-// Sources: CENTCOM Press Releases, IDF Spokesperson, CSIS Missile Threat,
+// Sources: CENTCOM Press Releases (Operation Epic Fury), JPost, CSIS Missile Threat,
 //          Planet Labs, Maxar Technologies, ISW
 // GPS coords: Verified against open-source satellite imagery
+// Last verified: 2026-03-09 — sources updated with specific article URLs
 // =============================================================================
 
 import '../models/missile_site.dart';
@@ -27,8 +28,8 @@ final List<MissileSite> iranianMissileSites = [
         'IRGC-ASF strategic command center in Tehran. Coordinated all '
         'ballistic missile and drone operations against Coalition targets. '
         'Destroyed in IAF/USAF precision strike D+1.',
-    sourceLabel: 'CENTCOM / IDF [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/Press-Release-View/Article/4418396/us-forces-launch-operation-epic-fury/',
     sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
@@ -50,8 +51,8 @@ final List<MissileSite> iranianMissileSites = [
         'Ministry of Defense and Armed Forces Logistics. Oversaw defense '
         'procurement, missile development programs, and DIO subsidiaries. '
         'Administrative complex struck D+2.',
-    sourceLabel: 'CENTCOM [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/STATEMENTS/Statements-View/Article/4419315/centcom-statement-on-operation-epic-fury-update/',
     sourceDate: DateTime.utc(2026, 3, 2, 6, 15),
     lastStrikeDate: '2026-03-02',
     strikeDetails:
@@ -73,8 +74,8 @@ final List<MissileSite> iranianMissileSites = [
         'Redundant joint operations center near Isfahan. Backup C2 node '
         'for missile and air defense coordination. Identified via SIGINT '
         'after Tehran HQ destruction.',
-    sourceLabel: 'CENTCOM [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://media.defense.gov/2026/Mar/06/2003894889/-1/-1/1/OPERATION-EPIC-FURY-FIRST-7-DAYS.PDF',
     sourceDate: DateTime.utc(2026, 3, 4, 6, 15),
     lastStrikeDate: '2026-03-04',
     strikeDetails:
@@ -102,8 +103,8 @@ final List<MissileSite> iranianMissileSites = [
         'Major missile R&D and solid propellant production facility. '
         'Underground tunnels house Shahab-3 and Emad assembly lines. '
         'Multiple TEL garages identified via commercial satellite imagery.',
-    sourceLabel: 'CSIS Missile Threat [A2]',
-    sourceUrl: 'https://missilethreat.csis.org/country/iran/',
+    sourceLabel: 'CSIS Missile Threat',
+    sourceUrl: 'https://missilethreat.csis.org/missile/shahab-3/',
     sourceDate: DateTime.utc(2026, 3, 5, 12, 0),
   ),
 
@@ -121,8 +122,8 @@ final List<MissileSite> iranianMissileSites = [
         'Northern IRGC ballistic missile garrison. Hosts Fateh-110 and '
         'Zolfaghar short-range BMs. Provides coverage of Turkey/Caucasus '
         'corridor. Hardened shelters detected in 2024 Maxar imagery.',
-    sourceLabel: 'CSIS [A2]',
-    sourceUrl: 'https://missilethreat.csis.org/country/iran/',
+    sourceLabel: 'CSIS Missile Threat',
+    sourceUrl: 'https://missilethreat.csis.org/missile/fateh-110/',
     sourceDate: DateTime.utc(2026, 3, 5, 12, 0),
   ),
 
@@ -140,8 +141,8 @@ final List<MissileSite> iranianMissileSites = [
         'Dual-use space launch and ICBM development site. Test-fired '
         'Qased SLV carrying Noor satellite. Deep underground facility '
         'with missile assembly tunnels.',
-    sourceLabel: 'CSIS / Planet Labs [A2]',
-    sourceUrl: 'https://missilethreat.csis.org/country/iran/',
+    sourceLabel: 'CSIS Missile Threat',
+    sourceUrl: 'https://missilethreat.csis.org/missile/qased/',
     sourceDate: DateTime.utc(2026, 3, 5, 12, 0),
   ),
 
@@ -159,8 +160,8 @@ final List<MissileSite> iranianMissileSites = [
         'Primary BM test and evaluation site. Shahab-3, Khorramshahr, '
         'and Fattah-2 hypersonic glide vehicle tested here. Static test '
         'stands and telemetry equipment visible on satellite.',
-    sourceLabel: 'CSIS [A2]',
-    sourceUrl: 'https://missilethreat.csis.org/country/iran/',
+    sourceLabel: 'CSIS Missile Threat',
+    sourceUrl: 'https://missilethreat.csis.org/missile/shahab-3/',
     sourceDate: DateTime.utc(2026, 3, 5, 12, 0),
   ),
 
@@ -178,8 +179,8 @@ final List<MissileSite> iranianMissileSites = [
         'Western IRGC missile garrison providing coverage of Iraq and '
         'Israel. Shahab-3 and Emad MRBMs deployed. Mountain terrain '
         'provides natural hardening.',
-    sourceLabel: 'CSIS [A2]',
-    sourceUrl: 'https://missilethreat.csis.org/country/iran/',
+    sourceLabel: 'CSIS Missile Threat',
+    sourceUrl: 'https://missilethreat.csis.org/missile/shahab-3/',
     sourceDate: DateTime.utc(2026, 3, 5, 12, 0),
   ),
 
@@ -197,8 +198,8 @@ final List<MissileSite> iranianMissileSites = [
         'Southern mobile TEL staging area. Fateh-110, Dezful, and '
         'Zolfaghar SRBMs. Provides rapid response coverage of GCC states '
         'and Strait of Hormuz.',
-    sourceLabel: 'CENTCOM [A2]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://media.defense.gov/2026/Mar/06/2003894889/-1/-1/1/OPERATION-EPIC-FURY-FIRST-7-DAYS.PDF',
     sourceDate: DateTime.utc(2026, 3, 5, 12, 0),
   ),
 
@@ -216,8 +217,8 @@ final List<MissileSite> iranianMissileSites = [
         'Southern IRGC garrison with hardened BM storage. Provides '
         'strategic depth for retaliatory strikes toward GCC capitals. '
         'Shahab-3 and Ghadr-1 MRBMs.',
-    sourceLabel: 'CSIS [B2]',
-    sourceUrl: 'https://missilethreat.csis.org/country/iran/',
+    sourceLabel: 'CSIS Missile Threat',
+    sourceUrl: 'https://missilethreat.csis.org/missile/shahab-3/',
     sourceDate: DateTime.utc(2026, 3, 5, 12, 0),
   ),
 
@@ -237,8 +238,8 @@ final List<MissileSite> iranianMissileSites = [
         'Former solid-propellant missile production facility east of '
         'Tehran. Destroyed in Coalition strike wave 1 (D+2). CENTCOM '
         'BDA confirmed total destruction of above-ground structures.',
-    sourceLabel: 'CENTCOM BDA [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/STATEMENTS/Statements-View/Article/4419315/centcom-statement-on-operation-epic-fury-update/',
     sourceDate: DateTime.utc(2026, 3, 2, 6, 15),
     lastStrikeDate: '2026-03-02',
     strikeDetails:
@@ -260,8 +261,8 @@ final List<MissileSite> iranianMissileSites = [
         'Missile assembly and storage facility southwest of Tehran. '
         '2011 explosion killed Gen. Moghaddam. Rebuilt, then destroyed '
         'again in IAF/USAF coordinated strike.',
-    sourceLabel: 'IDF / CENTCOM [A1]',
-    sourceUrl: 'https://www.idf.il/en/',
+    sourceLabel: 'JPost / IDF',
+    sourceUrl: 'https://www.jpost.com/middle-east/iran-news/article-889169',
     sourceDate: DateTime.utc(2026, 3, 2, 6, 15),
     lastStrikeDate: '2026-03-02',
     strikeDetails:
@@ -282,8 +283,8 @@ final List<MissileSite> iranianMissileSites = [
     description:
         'MRBM garrison west of Tehran. Shahab-3 and Emad TEL staging area. '
         'Used in Oct 2024 salvo against Israel. Struck in initial wave.',
-    sourceLabel: 'IDF / CENTCOM [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/Press-Release-View/Article/4418396/us-forces-launch-operation-epic-fury/',
     sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
@@ -305,8 +306,8 @@ final List<MissileSite> iranianMissileSites = [
         'Missile garrison in Greater Tehran area. Hardened shelters for '
         'Fateh-110 and Dezful SRBMs. Destroyed during first wave of '
         'Coalition strikes targeting Tehran-area missile infrastructure.',
-    sourceLabel: 'CENTCOM BDA [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/Press-Release-View/Article/4418396/us-forces-launch-operation-epic-fury/',
     sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
@@ -330,8 +331,8 @@ final List<MissileSite> iranianMissileSites = [
         'Major missile production complex. Produces Shahab series and '
         'Khorramshahr MRBM components. Above-ground facilities struck '
         'but underground production tunnels may remain operational.',
-    sourceLabel: 'CENTCOM BDA [A2]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/STATEMENTS/Statements-View/Article/4419315/centcom-statement-on-operation-epic-fury-update/',
     sourceDate: DateTime.utc(2026, 3, 3, 6, 15),
     lastStrikeDate: '2026-03-03',
     strikeDetails:
@@ -353,8 +354,8 @@ final List<MissileSite> iranianMissileSites = [
         'Western IRGC base near Iraq border. TEL staging area for '
         'Fateh-110 and Zolfaghar launches toward Iraq/Israel. '
         'Launch pads struck but mobile TELs may have dispersed.',
-    sourceLabel: 'CENTCOM [A2]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://media.defense.gov/2026/Mar/06/2003894889/-1/-1/1/OPERATION-EPIC-FURY-FIRST-7-DAYS.PDF',
     sourceDate: DateTime.utc(2026, 3, 4, 6, 15),
     lastStrikeDate: '2026-03-04',
     strikeDetails:
@@ -376,8 +377,8 @@ final List<MissileSite> iranianMissileSites = [
         'Khuzestan IRGC mobile missile staging area. Fateh-class SRBM '
         'launchers targeting Kuwait and Basra. Fuel depot struck but '
         'mobile TELs assessed dispersed into urban areas.',
-    sourceLabel: 'CENTCOM [A2]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://media.defense.gov/2026/Mar/06/2003894889/-1/-1/1/OPERATION-EPIC-FURY-FIRST-7-DAYS.PDF',
     sourceDate: DateTime.utc(2026, 3, 5, 6, 15),
     lastStrikeDate: '2026-03-05',
     strikeDetails:
@@ -401,8 +402,8 @@ final List<MissileSite> iranianMissileSites = [
         'Deep underground missile storage and launch complex. IRGC '
         'unveiled footage of tunnel system holding hundreds of BMs. '
         'Assessed hardened against conventional strikes. Status unknown.',
-    sourceLabel: 'CSIS / IRGC footage [B3]',
-    sourceUrl: 'https://missilethreat.csis.org/country/iran/',
+    sourceLabel: 'CSIS Missile Threat',
+    sourceUrl: 'https://missilethreat.csis.org/missile/emad/',
     sourceDate: DateTime.utc(2026, 3, 5, 12, 0),
   ),
 
@@ -424,8 +425,8 @@ final List<MissileSite> iranianMissileSites = [
         'Primary uranium enrichment facility. Underground centrifuge halls '
         'buried 8m below surface under concrete. Above-ground assembly '
         'halls destroyed. Underground centrifuge cascade status uncertain.',
-    sourceLabel: 'CENTCOM / IAEA [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/STATEMENTS/Statements-View/Article/4419315/centcom-statement-on-operation-epic-fury-update/',
     sourceDate: DateTime.utc(2026, 3, 2, 6, 15),
     lastStrikeDate: '2026-03-02',
     strikeDetails:
@@ -448,8 +449,8 @@ final List<MissileSite> iranianMissileSites = [
         'Deeply buried enrichment facility inside a mountain near Qom. '
         'Assessed hardened against conventional munitions including GBU-57 MOP. '
         'Multiple B-2 sorties attempted — BDA inconclusive.',
-    sourceLabel: 'CENTCOM / IAEA [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/STATEMENTS/Statements-View/Article/4419315/centcom-statement-on-operation-epic-fury-update/',
     sourceDate: DateTime.utc(2026, 3, 3, 6, 15),
     lastStrikeDate: '2026-03-03',
     strikeDetails:
@@ -471,8 +472,8 @@ final List<MissileSite> iranianMissileSites = [
         'Uranium Conversion Facility (UCF) converting yellowcake to UF6. '
         'Also hosts Fuel Manufacturing Plant and Zirconium Production Plant. '
         'Chemical processing buildings destroyed.',
-    sourceLabel: 'CENTCOM [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/STATEMENTS/Statements-View/Article/4419315/centcom-statement-on-operation-epic-fury-update/',
     sourceDate: DateTime.utc(2026, 3, 3, 6, 15),
     lastStrikeDate: '2026-03-03',
     strikeDetails:
@@ -494,8 +495,8 @@ final List<MissileSite> iranianMissileSites = [
         'Heavy water reactor capable of plutonium production. '
         'Modified under JCPOA but restored to original design post-2023. '
         'Reactor building and cooling towers destroyed.',
-    sourceLabel: 'CENTCOM / IAEA [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/STATEMENTS/Statements-View/Article/4419315/centcom-statement-on-operation-epic-fury-update/',
     sourceDate: DateTime.utc(2026, 3, 2, 6, 15),
     lastStrikeDate: '2026-03-02',
     strikeDetails:
@@ -522,8 +523,8 @@ final List<MissileSite> iranianMissileSites = [
         'Major IRIAF fighter base housing F-14A Tomcats and Su-24 Fencers. '
         'Primary air defense interceptor base for central Iran. '
         'Runway, HAS, and ATC tower destroyed.',
-    sourceLabel: 'CENTCOM BDA [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/Press-Release-View/Article/4418396/us-forces-launch-operation-epic-fury/',
     sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
@@ -546,8 +547,8 @@ final List<MissileSite> iranianMissileSites = [
         'Northern IRIAF fighter base hosting F-5E/F Tiger IIs and MiG-29s. '
         'Runway partially repaired after initial strikes. Some aircraft '
         'may have dispersed to highway strips.',
-    sourceLabel: 'CENTCOM [A2]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/Press-Release-View/Article/4418396/us-forces-launch-operation-epic-fury/',
     sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
@@ -570,8 +571,8 @@ final List<MissileSite> iranianMissileSites = [
         'Coastal IRIAF base near Bushehr nuclear power plant. Hosted '
         'F-4E Phantoms for maritime strike missions. Runway and '
         'maintenance facilities destroyed.',
-    sourceLabel: 'CENTCOM BDA [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/Press-Release-View/Article/4418396/us-forces-launch-operation-epic-fury/',
     sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
@@ -593,8 +594,8 @@ final List<MissileSite> iranianMissileSites = [
         'Dual-use military/civil airport west of Tehran. IRIAF transport '
         'and VIP aircraft. Military apron and IRGC hangars struck. '
         'Civilian terminal spared.',
-    sourceLabel: 'CENTCOM [A2]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/STATEMENTS/Statements-View/Article/4419315/centcom-statement-on-operation-epic-fury-update/',
     sourceDate: DateTime.utc(2026, 3, 2, 6, 15),
     lastStrikeDate: '2026-03-02',
     strikeDetails:
@@ -616,8 +617,8 @@ final List<MissileSite> iranianMissileSites = [
         'Strategic IRIAF base that hosted Russian Tu-22M3 bombers in 2016. '
         'Su-24 Fencer attack aircraft and IRGC drone operations. '
         'Complete destruction of all military infrastructure.',
-    sourceLabel: 'CENTCOM BDA [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/Press-Release-View/Article/4418396/us-forces-launch-operation-epic-fury/',
     sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
@@ -640,8 +641,8 @@ final List<MissileSite> iranianMissileSites = [
         'Major air base controlling Strait of Hormuz airspace. F-14A '
         'interceptors and IRGC-AF drone wing. Critical for maritime '
         'denial operations.',
-    sourceLabel: 'CENTCOM BDA [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/Press-Release-View/Article/4418396/us-forces-launch-operation-epic-fury/',
     sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
@@ -663,8 +664,8 @@ final List<MissileSite> iranianMissileSites = [
         'Khuzestan IRIAF base hosting F-4E Phantoms and Su-25 Frogfoots. '
         'Closest fighter base to Kuwait and southern Iraq. '
         'Complete destruction confirmed.',
-    sourceLabel: 'CENTCOM BDA [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/Press-Release-View/Article/4418396/us-forces-launch-operation-epic-fury/',
     sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
@@ -690,8 +691,8 @@ final List<MissileSite> iranianMissileSites = [
         'Largest Iranian naval base. Home port for frigates, corvettes, '
         'and Kilo-class submarines. IRGCN fast attack craft pens located '
         'adjacent. Port facilities partially damaged.',
-    sourceLabel: 'CENTCOM / NAVCENT [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM / NAVCENT',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/STATEMENTS/Statements-View/Article/4419315/centcom-statement-on-operation-epic-fury-update/',
     sourceDate: DateTime.utc(2026, 3, 2, 6, 15),
     lastStrikeDate: '2026-03-02',
     strikeDetails:
@@ -714,8 +715,8 @@ final List<MissileSite> iranianMissileSites = [
         'IRGCN fast attack craft base and coastal missile battery. '
         'C-802/Noor ASCM launchers and armed speedboats. '
         'Complete destruction of naval pens and missile storage.',
-    sourceLabel: 'CENTCOM BDA [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/Press-Release-View/Article/4418396/us-forces-launch-operation-epic-fury/',
     sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
@@ -737,8 +738,8 @@ final List<MissileSite> iranianMissileSites = [
         'New naval FOB on Gulf of Oman coast. Forward staging for ASCM '
         'operations beyond the Strait. Mine warfare and submarine '
         'support facilities.',
-    sourceLabel: 'CENTCOM [A2]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/STATEMENTS/Statements-View/Article/4419315/centcom-statement-on-operation-epic-fury-update/',
     sourceDate: DateTime.utc(2026, 3, 3, 6, 15),
     lastStrikeDate: '2026-03-03',
     strikeDetails:
@@ -760,8 +761,8 @@ final List<MissileSite> iranianMissileSites = [
         'IRGCN station adjacent to South Pars gas complex. Fast attack '
         'craft and mining operations. Located near critical energy '
         'infrastructure — precision strikes only on military targets.',
-    sourceLabel: 'CENTCOM [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/STATEMENTS/Statements-View/Article/4419315/centcom-statement-on-operation-epic-fury-update/',
     sourceDate: DateTime.utc(2026, 3, 2, 6, 15),
     lastStrikeDate: '2026-03-02',
     strikeDetails:
@@ -787,8 +788,8 @@ final List<MissileSite> iranianMissileSites = [
         'Coastal anti-ship cruise missile batteries controlling the '
         'Strait of Hormuz. Noor (C-802) and Khalij Fars ASCM launchers. '
         'Coordinates with IRGC fast-boat swarms. Mobile launchers redeployed.',
-    sourceLabel: 'CENTCOM [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://media.defense.gov/2026/Mar/06/2003894889/-1/-1/1/OPERATION-EPIC-FURY-FIRST-7-DAYS.PDF',
     sourceDate: DateTime.utc(2026, 3, 5, 12, 0),
   ),
 
@@ -806,8 +807,8 @@ final List<MissileSite> iranianMissileSites = [
         'Eastern coastal defense complex on Gulf of Oman. Anti-ship '
         'missile batteries covering the Arabian Sea approach. '
         'Coordinates with Jask naval base.',
-    sourceLabel: 'CENTCOM [A2]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://media.defense.gov/2026/Mar/06/2003894889/-1/-1/1/OPERATION-EPIC-FURY-FIRST-7-DAYS.PDF',
     sourceDate: DateTime.utc(2026, 3, 5, 12, 0),
   ),
 
@@ -829,8 +830,8 @@ final List<MissileSite> iranianMissileSites = [
         'Defense Industries Organization R&D campus. Weapons systems '
         'development, guidance system research, and warhead design. '
         'Previously linked to undeclared nuclear research.',
-    sourceLabel: 'CENTCOM / IAEA [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/STATEMENTS/Statements-View/Article/4419315/centcom-statement-on-operation-epic-fury-update/',
     sourceDate: DateTime.utc(2026, 3, 2, 6, 15),
     lastStrikeDate: '2026-03-02',
     strikeDetails:
@@ -852,8 +853,8 @@ final List<MissileSite> iranianMissileSites = [
         'Primary manufacturer of military electronics, radar systems, '
         'missile guidance computers, and C4ISR equipment. Produces '
         'components for Bavar-373 and S-300 radar integration.',
-    sourceLabel: 'CENTCOM BDA [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/STATEMENTS/Statements-View/Article/4419315/centcom-statement-on-operation-epic-fury-update/',
     sourceDate: DateTime.utc(2026, 3, 3, 6, 15),
     lastStrikeDate: '2026-03-03',
     strikeDetails:
@@ -875,8 +876,8 @@ final List<MissileSite> iranianMissileSites = [
         'Primary liquid-fueled ballistic missile developer. Responsible for '
         'Shahab-3, Ghadr-1, Emad, and Khorramshahr programs. '
         'Fabrication and final assembly facility.',
-    sourceLabel: 'CENTCOM / CSIS [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/STATEMENTS/Statements-View/Article/4419315/centcom-statement-on-operation-epic-fury-update/',
     sourceDate: DateTime.utc(2026, 3, 2, 6, 15),
     lastStrikeDate: '2026-03-02',
     strikeDetails:
@@ -898,8 +899,8 @@ final List<MissileSite> iranianMissileSites = [
         'Centrifuge component manufacturing for Natanz enrichment program. '
         'Also produces specialized missile parts. Underground production '
         'tunnels may remain intact.',
-    sourceLabel: 'CENTCOM / IAEA [A2]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://media.defense.gov/2026/Mar/06/2003894889/-1/-1/1/OPERATION-EPIC-FURY-FIRST-7-DAYS.PDF',
     sourceDate: DateTime.utc(2026, 3, 4, 6, 15),
     lastStrikeDate: '2026-03-04',
     strikeDetails:
@@ -925,8 +926,8 @@ final List<MissileSite> iranianMissileSites = [
         'Primary Shahed-136 one-way-attack drone production and staging '
         'facility. Also produces Shahed-129 MALE reconnaissance UAVs. '
         'Key node for drone supply to Russia and proxy groups.',
-    sourceLabel: 'CENTCOM / ISW [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/Press-Release-View/Article/4418396/us-forces-launch-operation-epic-fury/',
     sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
@@ -949,8 +950,8 @@ final List<MissileSite> iranianMissileSites = [
         'Northern drone operations base. Mohajer-6 and Ababil-series UAVs. '
         'Training center for IRGC drone operators. Assembly hangars '
         'struck but some facilities may remain operational.',
-    sourceLabel: 'CENTCOM [A2]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://media.defense.gov/2026/Mar/06/2003894889/-1/-1/1/OPERATION-EPIC-FURY-FIRST-7-DAYS.PDF',
     sourceDate: DateTime.utc(2026, 3, 4, 6, 15),
     lastStrikeDate: '2026-03-04',
     strikeDetails:
@@ -972,8 +973,8 @@ final List<MissileSite> iranianMissileSites = [
         'IRGC-AF drone wing co-located with Khatami AFB. Mohajer-6 armed '
         'reconnaissance UAVs and Ababil-3 loitering munitions. '
         'Destroyed alongside the main air base.',
-    sourceLabel: 'CENTCOM BDA [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/Press-Release-View/Article/4418396/us-forces-launch-operation-epic-fury/',
     sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
@@ -999,8 +1000,8 @@ final List<MissileSite> iranianMissileSites = [
         'Primary air defense battery protecting Tehran. Russian-supplied '
         'S-300PMU2 and indigenous Bavar-373 long-range SAM. Engagement '
         'radars and command vehicles destroyed in SEAD/DEAD campaign.',
-    sourceLabel: 'CENTCOM BDA [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/Press-Release-View/Article/4418396/us-forces-launch-operation-epic-fury/',
     sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
@@ -1023,8 +1024,8 @@ final List<MissileSite> iranianMissileSites = [
         'Multi-system air defense protecting Isfahan nuclear/military '
         'complex. S-300PMU2 and indigenous Khordad-15 medium-range SAM. '
         'Early warning radar co-located.',
-    sourceLabel: 'CENTCOM / IDF [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'JPost / IDF',
+    sourceUrl: 'https://www.jpost.com/middle-east/iran-news/article-889169',
     sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
@@ -1046,8 +1047,8 @@ final List<MissileSite> iranianMissileSites = [
         'Dedicated S-300PMU2 battery defending Bushehr nuclear power plant. '
         'Battery was engaged after IRIAF air defense opened fire on '
         'Coalition aircraft.',
-    sourceLabel: 'CENTCOM BDA [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/Press-Release-View/Article/4418396/us-forces-launch-operation-epic-fury/',
     sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
@@ -1069,8 +1070,8 @@ final List<MissileSite> iranianMissileSites = [
         'Indigenous Bavar-373 long-range SAM battery defending Natanz '
         'nuclear enrichment facility. Iran\'s most advanced domestically '
         'produced air defense system.',
-    sourceLabel: 'CENTCOM / IDF [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/Press-Release-View/Article/4418396/us-forces-launch-operation-epic-fury/',
     sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
@@ -1093,8 +1094,8 @@ final List<MissileSite> iranianMissileSites = [
         'Long-range early warning and surveillance radar complex. '
         'Ghadir phased-array and Sepehr over-the-horizon radar systems. '
         'Critical node for Iranian IADS — Strait of Hormuz coverage.',
-    sourceLabel: 'CENTCOM BDA [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/Press-Release-View/Article/4418396/us-forces-launch-operation-epic-fury/',
     sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
@@ -1121,8 +1122,8 @@ final List<MissileSite> iranianMissileSites = [
         'IRGC Quds Force forward base near Iraq-Syria border. Used for '
         'arms transfers to Hezbollah and PMF. Precision-guided munition '
         'storage confirmed by Israeli intelligence.',
-    sourceLabel: 'CENTCOM / IDF [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/Press-Release-View/Article/4418396/us-forces-launch-operation-epic-fury/',
     sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails: 'Coalition airstrikes destroyed weapons storage facilities.',
@@ -1142,8 +1143,8 @@ final List<MissileSite> iranianMissileSites = [
         'IRGC drone operations base in central Syria. Hosted Shahed-129 '
         'and Mohajer-6 UAVs. Used for strikes on Coalition forces in '
         'eastern Syria and intelligence gathering.',
-    sourceLabel: 'CENTCOM / IDF [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/Press-Release-View/Article/4418396/us-forces-launch-operation-epic-fury/',
     sourceDate: DateTime.utc(2026, 3, 1, 6, 15),
     lastStrikeDate: '2026-03-01',
     strikeDetails:
@@ -1165,8 +1166,8 @@ final List<MissileSite> iranianMissileSites = [
         'Houthi-controlled former YAF air base north of Sanaa. Used '
         'as BM and drone launch site for attacks on Saudi Arabia, UAE, '
         'and Red Sea shipping. Iranian-supplied components.',
-    sourceLabel: 'CENTCOM [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://media.defense.gov/2026/Mar/06/2003894889/-1/-1/1/OPERATION-EPIC-FURY-FIRST-7-DAYS.PDF',
     sourceDate: DateTime.utc(2026, 3, 5, 12, 0),
   ),
 
@@ -1184,8 +1185,8 @@ final List<MissileSite> iranianMissileSites = [
         'Houthi ASCM launch sites along the Red Sea coast targeting '
         'commercial shipping and USN vessels. Destroyed in CENTCOM '
         'retaliatory strikes after attacks on USS Gravely.',
-    sourceLabel: 'CENTCOM [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://media.defense.gov/2026/Mar/06/2003894889/-1/-1/1/OPERATION-EPIC-FURY-FIRST-7-DAYS.PDF',
     sourceDate: DateTime.utc(2026, 3, 5, 6, 15),
     lastStrikeDate: '2026-03-05',
     strikeDetails:
@@ -1207,8 +1208,8 @@ final List<MissileSite> iranianMissileSites = [
         'Houthi weapons storage and BM staging area in Saada province. '
         'Iranian-supplied Toophan ATGMs, Burkan BMs, and Qasef-1 drones. '
         'Mountain cave storage.',
-    sourceLabel: 'CENTCOM [A1]',
-    sourceUrl: 'https://www.centcom.mil/MEDIA/PRESS-RELEASES/',
+    sourceLabel: 'CENTCOM',
+    sourceUrl: 'https://media.defense.gov/2026/Mar/06/2003894889/-1/-1/1/OPERATION-EPIC-FURY-FIRST-7-DAYS.PDF',
     sourceDate: DateTime.utc(2026, 3, 6, 6, 15),
     lastStrikeDate: '2026-03-06',
     strikeDetails:
