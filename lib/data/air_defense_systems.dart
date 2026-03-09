@@ -4,7 +4,7 @@
 //          SPA, Arab News, MOD Oman, IDF Spokesperson, CENTCOM
 // Interception stats: Cumulative since mission start (28 FEB 2026 02:00 UTC)
 // All sourceDate timestamps are UTC publication time of the cited source.
-// Last verified: 2026-03-09
+// Last verified: 2026-03-09 — sources updated with latest OSINT
 // =============================================================================
 
 import '../models/air_defense_system.dart';
@@ -49,15 +49,16 @@ final List<AirDefenseSystem> coalitionAirDefense = [
       lastUpdated: '2026-03-08',
     ),
     sourceLabel: '@modgovae (X)',
-    sourceUrl: 'https://x.com/modgovae/status/2030241691115126947',
-    sourceDate: DateTime.utc(2026, 3, 8, 10, 22),
+    sourceUrl: 'https://x.com/modgovae/status/2030596754287247788',
+    sourceDate: DateTime.utc(2026, 3, 8, 14, 22),
     baseName: 'Al Dhafra Air Base',
     operator: 'UAE Armed Forces / US CENTCOM',
   ),
 
   // ── Kuwait ─────────────────────────────────────────────────────────
-  // Source: Times Kuwait — published 6 Mar 2026 ~09:00 UTC
-  // 97 Iranian BMs + 283 drones intercepted
+  // Source: Times Kuwait — published 6 Mar 2026 ~14:00 UTC
+  // MOD spokesman: 212 ballistic missiles + 394 drones intercepted
+  // 67 army personnel injured
 
   AirDefenseSystem(
     id: 'ad-kw-arifjan',
@@ -71,24 +72,25 @@ final List<AirDefenseSystem> coalitionAirDefense = [
         'Multi-layered air defense covering Kuwait City and '
         'US military installations. Patriot batteries at Camp Arifjan '
         'and Ali Al Salem AB provide overlapping coverage. '
-        '97 Iranian ballistic missiles and 283 drones destroyed.',
+        'MOD spokesman: 212 Iranian ballistic missiles and 394 drones '
+        'intercepted. 67 army personnel injured.',
     stats: InterceptionStats(
-      ballisticIntercepted: 97,
+      ballisticIntercepted: 212,
       cruiseIntercepted: 0,
-      droneIntercepted: 283,
-      totalIntercepted: 380,
-      lastUpdated: '2026-03-08',
+      droneIntercepted: 394,
+      totalIntercepted: 606,
+      lastUpdated: '2026-03-06',
     ),
-    sourceLabel: 'Times Kuwait / Anadolu',
-    sourceUrl: 'https://timeskuwait.com/kuwait-army-air-defenses-intercept-missile-and-drone-attacks-in-airspace/',
-    sourceDate: DateTime.utc(2026, 3, 6, 9, 0),
+    sourceLabel: 'Times Kuwait (MOD)',
+    sourceUrl: 'https://timeskuwait.com/kuwait-intercepts-212-ballistic-missiles-394-drones-67-army-personnel-injured/',
+    sourceDate: DateTime.utc(2026, 3, 6, 14, 0),
     baseName: 'Camp Arifjan / Ali Al Salem AB',
     operator: 'Kuwait Armed Forces / US Army',
   ),
 
   // ── Bahrain ────────────────────────────────────────────────────────
-  // Source: Gulf News — published 7 Mar 2026 ~11:30 UTC
-  // 75 missiles + 123 drones = 198 total
+  // Source: Gulf News — published 8 Mar 2026 ~12:00 UTC
+  // 95 missiles + 164 drones = 259 total intercepted
 
   AirDefenseSystem(
     id: 'ad-bh-nsa',
@@ -101,26 +103,27 @@ final List<AirDefenseSystem> coalitionAirDefense = [
     description:
         'US 5th Fleet HQ defense. Patriot batteries protect Manama, '
         'Isa AB, and naval facilities. Bahrain Defense Force augments '
-        'with SHORAD systems. BDF General Command reported 75 missiles '
-        'and 123 drones intercepted.',
+        'with SHORAD systems. BDF reported 95 missiles and 164 drones '
+        'intercepted since start of Iranian attacks.',
     stats: InterceptionStats(
-      ballisticIntercepted: 75,
+      ballisticIntercepted: 95,
       cruiseIntercepted: 0,
-      droneIntercepted: 123,
-      totalIntercepted: 198,
+      droneIntercepted: 164,
+      totalIntercepted: 259,
       lastUpdated: '2026-03-08',
     ),
-    sourceLabel: 'BDF / Gulf News',
-    sourceUrl: 'https://gulfnews.com/amp/story/world/mena/bahrain-defence-force-intercepted-75-missiles-and-123-drones-since-start-of-attacks-1.500464224',
-    sourceDate: DateTime.utc(2026, 3, 7, 11, 30),
+    sourceLabel: 'Gulf News / BDF',
+    sourceUrl: 'https://gulfnews.com/world/gulf/bahrain/bahrain-intercepts-95-missiles-164-drones-from-iranian-attacks-1.500467457',
+    sourceDate: DateTime.utc(2026, 3, 8, 12, 0),
     baseName: 'NSA Bahrain / Isa AB',
     operator: 'BDF / US NAVCENT',
   ),
 
   // ── Qatar ──────────────────────────────────────────────────────────
-  // Source: QNA — published 4 Mar 2026 ~15:45 UTC
-  // 101 BM detected → 98 intercepted / 3 CM intercepted / 39 drones
-  // 2 Iranian Su-24 aircraft shot down
+  // Source: Peninsula Qatar — published 7 Mar 2026 ~16:00 UTC (live updates)
+  // Cumulative: 101 BM detected → 98 intercepted / 3 CM / 48 drones
+  // 2 Iranian Su-24 aircraft shot down (2 Mar)
+  // 7 Mar: 9 of 10 drones intercepted, 1 struck uninhabited area
 
   AirDefenseSystem(
     id: 'ad-qa-udeid',
@@ -134,26 +137,29 @@ final List<AirDefenseSystem> coalitionAirDefense = [
         'Largest US base in Middle East. Houses Combined Air Operations '
         'Center (CAOC). Patriot + NASAMS provide layered defense. '
         '101 BMs detected — 98 intercepted. 3 cruise missiles destroyed. '
-        '39 drones neutralized. 2 Iranian Su-24 aircraft shot down.',
+        '48 drones neutralized (incl. 9 of 10 on 7 Mar). '
+        '2 Iranian Su-24 aircraft shot down on 2 Mar.',
     stats: InterceptionStats(
       ballisticIntercepted: 98,
       cruiseIntercepted: 3,
-      droneIntercepted: 39,
-      totalIntercepted: 140,
-      lastUpdated: '2026-03-08',
+      droneIntercepted: 48,
+      totalIntercepted: 149,
+      lastUpdated: '2026-03-07',
     ),
-    sourceLabel: 'QNA',
-    sourceUrl: 'https://qna.org.qa/en/news/news-details?id=defense-ministry-announces-successful-interception-of-10-drones-and-two-cruise-missiles&date=4/03/2026',
-    sourceDate: DateTime.utc(2026, 3, 4, 15, 45),
+    sourceLabel: 'Peninsula Qatar / QNA',
+    sourceUrl: 'https://thepeninsulaqatar.com/article/07/03/2026/live-updates-qatar-intercepts-9-drones1-struck-uninhabited-area-mod',
+    sourceDate: DateTime.utc(2026, 3, 7, 16, 0),
     baseName: 'Al Udeid Air Base',
     operator: 'Qatar Emiri AF / US CENTCOM',
   ),
 
   // ── Saudi Arabia ───────────────────────────────────────────────────
-  // Source: Arab News — published 7 Mar 2026 ~13:10 UTC
-  // KSA less targeted — first THAAD battery operational July 2025.
-  // March 7: 3 BM + 2 CM intercepted over Al-Kharj, 5 drones neutralized.
-  // Shaybah oilfield: 6 drones intercepted.
+  // Source: Saudi Gazette / MOD (compiled) — through 8 Mar 2026
+  // No single cumulative release — compiled from incident reports:
+  // BM: 3 (Mar 6 Prince Sultan AB) + 5 (Mar 7-8) = 8
+  // CM: 2 (Mar 3-4) + 3 (Mar 5 Al-Kharj) + 1 (Mar 6) = 6
+  // Drones: 10 (Mar 1) + 11 (Mar 3-4) + 4 (Mar 5) + 6 (Mar 6)
+  //       + 21 (Shaybah) + 10 (Riyadh Mar 7-8) = 62
 
   AirDefenseSystem(
     id: 'ad-ksa-riyadh',
@@ -167,25 +173,30 @@ final List<AirDefenseSystem> coalitionAirDefense = [
         'Multi-layered air defense protecting Riyadh, Aramco facilities, '
         'and eastern province infrastructure. Patriot PAC-3 MSE is backbone. '
         'First THAAD battery operational since July 2025 (7-battery order, '
-        '\$15B contract). KSA less directly targeted than Gulf littoral states.',
+        '\$15B contract). Compiled from MOD incident reports: 8 BMs '
+        'intercepted (Prince Sultan AB), 6 CMs destroyed (Al-Kharj), '
+        '62 drones neutralized (Shaybah, Riyadh, Ras Tanura, Al-Jouf).',
     stats: InterceptionStats(
-      ballisticIntercepted: 5,
-      cruiseIntercepted: 2,
-      droneIntercepted: 11,
-      totalIntercepted: 18,
+      ballisticIntercepted: 8,
+      cruiseIntercepted: 6,
+      droneIntercepted: 62,
+      totalIntercepted: 76,
       lastUpdated: '2026-03-08',
     ),
-    sourceLabel: 'Arab News / SPA',
-    sourceUrl: 'https://www.arabnews.com/node/2635432/saudi-arabia',
-    sourceDate: DateTime.utc(2026, 3, 7, 13, 10),
+    sourceLabel: 'Saudi Gazette / MOD',
+    sourceUrl: 'https://saudigazette.com.sa/article/659514/saudi-arabia/saudi-intercepts-16-drones-targeting-shaybah-field-missile-toward-prince-sultan-air-base',
+    sourceDate: DateTime.utc(2026, 3, 7, 13, 0),
     baseName: 'Prince Sultan AB / King Abdulaziz AB',
     operator: 'Royal Saudi Air Defense Forces',
   ),
 
   // ── Oman ───────────────────────────────────────────────────────────
-  // Source: Iran International — published 3 Mar 2026 ~17:26 UTC
-  // Very limited disclosure. 2 drones intercepted over Dhofar Province.
-  // Duqm port struck by drones — fuel tank damaged, 1 worker injured.
+  // Sources: Oman News Agency (1 Mar), Muscat Daily (3 Mar), Anadolu (1 Mar)
+  // 1 Mar: Duqm port struck — 1 drone hit workers' housing (1 injured),
+  //        1 drone debris near fuel tanks
+  // 3 Mar: Duqm port 2nd attack — fuel tank hit (fire contained)
+  //        Salalah: 2 drones intercepted over Dhofar, 1 crashed near port
+  // Very limited official disclosure — no cumulative MOD statement
 
   AirDefenseSystem(
     id: 'ad-om-muscat',
@@ -196,30 +207,31 @@ final List<AirDefenseSystem> coalitionAirDefense = [
     lat: 23.59,
     lng: 58.28,
     description:
-        'Limited air defense coverage. Duqm Port was struck early '
-        'in the conflict — fuel tank damaged, 1 worker injured. '
+        'Limited air defense coverage. Duqm Port struck twice '
+        '(1 & 3 Mar) — fuel tank damaged, 1 worker injured. '
         'RAFO maintains basic Patriot PAC-2 coverage around Muscat '
-        'and Musandam. 2 drones intercepted over Dhofar Province. '
-        'Very limited official disclosure.',
+        'and Musandam. 2 drones intercepted over Dhofar Province '
+        'near Salalah. No cumulative MOD statement released.',
     stats: InterceptionStats(
       ballisticIntercepted: 0,
       cruiseIntercepted: 0,
       droneIntercepted: 2,
       totalIntercepted: 2,
-      lastUpdated: '2026-03-08',
+      lastUpdated: '2026-03-03',
     ),
-    sourceLabel: 'Iran Intl / Anadolu',
-    sourceUrl: 'https://www.iranintl.com/en/202603031726',
-    sourceDate: DateTime.utc(2026, 3, 3, 17, 26),
+    sourceLabel: 'Muscat Daily / ONA',
+    sourceUrl: 'https://www.muscatdaily.com/2026/03/03/drones-target-ports-in-duqm-and-salalah/',
+    sourceDate: DateTime.utc(2026, 3, 3, 12, 0),
     baseName: 'Muscat AFB',
     operator: 'Royal Air Force of Oman',
   ),
 
   // ── Israel ─────────────────────────────────────────────────────────
-  // Source: FDD analysis — published 4 Mar 2026 ~14:00 UTC
-  // FDD: 86% success rate in missile interception during conflict
-  // Arrow 3: exo-atmospheric (combat debut Oct 2023 vs Houthi BM)
-  // Iron Dome: 5,000+ cumulative interceptions since 2011 (Rafael)
+  // Sources: FDD analysis (4 Mar), Jerusalem Post (7 Mar), Haaretz (8 Mar)
+  // FDD (4 Mar): ~90% BM interception, ~99% drone interception
+  // JPost (7 Mar): IDF destroyed 300 of 400-550 Iranian launchers (75%)
+  // Haaretz (8 Mar): Iranian BM fire rate dropped from ~100/day to ~15/day
+  // 80% of Iran's air defenses destroyed — IDF CoS Lt. Gen. Zamir
 
   AirDefenseSystem(
     id: 'ad-il-center',
@@ -239,7 +251,8 @@ final List<AirDefenseSystem> coalitionAirDefense = [
         '(exo-atmospheric, combat debut Oct 2023), Arrow 2 (endo), '
         'David\'s Sling (MRBM/cruise, 100% success rate), '
         'Iron Dome (5,000+ interceptions since 2011), Iron Beam (laser). '
-        'FDD assessed 86% overall interception rate during conflict.',
+        '~90% BM interception rate, ~99% drone rate. IDF destroyed '
+        '300 Iranian launchers (75%). BM fire rate: 100/day → 15/day.',
     stats: InterceptionStats(
       ballisticIntercepted: 312,
       cruiseIntercepted: 87,
@@ -247,17 +260,21 @@ final List<AirDefenseSystem> coalitionAirDefense = [
       totalIntercepted: 1275,
       lastUpdated: '2026-03-08',
     ),
-    sourceLabel: 'FDD / IDF Spokesperson',
-    sourceUrl: 'https://www.fdd.org/analysis/2026/03/04/israel-conducts-1600-strikes-on-iran-in-4-days-of-war-weathers-iranian-missile-and-drones/',
-    sourceDate: DateTime.utc(2026, 3, 4, 14, 0),
+    sourceLabel: 'JPost / FDD / IDF',
+    sourceUrl: 'https://www.jpost.com/middle-east/iran-news/article-889169',
+    sourceDate: DateTime.utc(2026, 3, 7, 14, 0),
     baseName: 'Palmachim AB / Nevatim AB',
     operator: 'Israel Defense Forces — Air Defense Command',
   ),
 
   // ── US CENTCOM Naval ───────────────────────────────────────────────
-  // Source: USNI News — published 28 Feb 2026 ~18:30 UTC
-  // SM-3 first combat use: April 14, 2024 vs Iranian BMs
-  // Red Sea campaign: 380 threats defeated, 220 missiles fired (15 months)
+  // Sources: Military Times (6 Mar), USNI News (4 Mar)
+  // Interceptor expenditure (Military Times est.):
+  //   THAAD: 100-150 used (from stockpile of 534, ~30% depletion)
+  //   SM-3: ~80 used (from stockpile of 414)
+  // USS Oscar Austin (DDG-79) SM-3 intercept of Iranian BM headed for
+  // Turkey — 4 Mar 2026, first NATO intercept of Iranian missile
+  // CENTCOM total: Iran launched 500+ BMs, 2000+ drones across all theaters
 
   AirDefenseSystem(
     id: 'ad-us-aegis',
@@ -269,19 +286,20 @@ final List<AirDefenseSystem> coalitionAirDefense = [
     lng: 57.00,
     description:
         'US Navy Aegis BMD-equipped destroyers (SM-3 Block IIA exo-atmospheric, '
-        'SM-6 terminal, SM-2 area defense). First SM-3 combat use April 2024 '
-        'vs Iranian BMs. 15-month Red Sea campaign: 380 threats defeated, '
-        '220 missiles and 160 gun rounds expended. THAAD battery supplements.',
+        'SM-6 terminal, SM-2 area defense). ~80 SM-3 interceptors expended '
+        '(from 414 stockpile). 100-150 THAAD interceptors used. '
+        'USS Oscar Austin SM-3 intercept of Iranian BM headed for Turkey '
+        '(4 Mar, first NATO intercept). CENTCOM: 2,000 targets struck.',
     stats: InterceptionStats(
       ballisticIntercepted: 42,
       cruiseIntercepted: 18,
       droneIntercepted: 0,
       totalIntercepted: 60,
-      lastUpdated: '2026-03-08',
+      lastUpdated: '2026-03-06',
     ),
-    sourceLabel: 'CENTCOM / USNI News',
-    sourceUrl: 'https://news.usni.org/2026/02/28/u-s-israel-launch-operation-epic-fury-against-iran-tehran-retaliates-across-region',
-    sourceDate: DateTime.utc(2026, 2, 28, 18, 30),
+    sourceLabel: 'Military Times / USNI',
+    sourceUrl: 'https://www.militarytimes.com/news/your-military/2026/03/06/race-of-attrition-us-militarys-finite-interceptor-stockpile-is-being-tested/',
+    sourceDate: DateTime.utc(2026, 3, 6, 12, 0),
     baseName: 'CSG Arabian Gulf',
     operator: 'US CENTCOM / NAVCENT',
   ),
