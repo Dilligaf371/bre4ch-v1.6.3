@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../config/theme.dart';
 import '../models/military_position.dart';
+import '../providers/defense_stats_provider.dart';
 import '../widgets/common/header_bar.dart';
 import '../widgets/common/palantir_card.dart';
 import '../widgets/common/collapsible_section.dart';
@@ -563,6 +564,18 @@ const _allCountryChips = [
   _CountryChip('OM', '\u{1F1F4}\u{1F1F2}', 'OM'),
 ];
 
+// ── Air defense system ID → INTEL country code mapping ─────────────
+const _adSystemToCountry = {
+  'ad-uae-dhafra': 'AE',
+  'ad-kw-arifjan': 'KW',
+  'ad-bh-nsa': 'BH',
+  'ad-qa-udeid': 'QA',
+  'ad-ksa-riyadh': 'SA',
+  'ad-om-muscat': 'OM',
+  'ad-il-center': 'IL',
+  'ad-us-aegis': 'US',
+};
+
 // ── Screen ──────────────────────────────────────────────────────────
 
 class WarStateScreen extends ConsumerStatefulWidget {
@@ -592,9 +605,49 @@ class _WarStateScreenState extends ConsumerState<WarStateScreen> {
     super.dispose();
   }
 
+  /// Inject dynamic air defense interception stats into a nation list.
+  List<_StakeholderEntity> _enrichWithDefenseStats(
+    List<_StakeholderEntity> nations,
+    DefenseStatsState defenseState,
+  ) {
+    final systems = defenseState.mergedSystems;
+    return nations.map((nation) {
+      final matching = systems.where((s) =>
+        _adSystemToCountry[s.id] == nation.code,
+      ).toList();
+      if (matching.isEmpty) return nation;
+
+      int bm = 0, cm = 0, uav = 0, total = 0;
+      for (final s in matching) {
+        bm += s.stats.ballisticIntercepted;
+        cm += s.stats.cruiseIntercepted;
+        uav += s.stats.droneIntercepted;
+        total += s.stats.totalIntercepted;
+      }
+      if (total == 0) return nation;
+
+      final stat = _VerifiedStat(
+        'AIR DEFENSE INTERCEPTS',
+        '$total (BM: $bm / CM: $cm / UAV: $uav)',
+        stanag: defenseState.loaded ? 'A2' : 'B3',
+      );
+      return _StakeholderEntity(
+        flag: nation.flag,
+        name: nation.name,
+        code: nation.code,
+        live: nation.live,
+        sourceLabel: nation.sourceLabel,
+        sourceUrl: nation.sourceUrl,
+        stats: [stat, ...nation.stats],
+      );
+    }).toList();
+  }
+
   List<_StakeholderEntity> get _filteredCoalition {
-    if (_selectedCountry == 'ALL') return _coalitionNations;
-    return _coalitionNations.where((n) => n.code == _selectedCountry).toList();
+    final defenseState = ref.watch(defenseStatsProvider);
+    final enriched = _enrichWithDefenseStats(_coalitionNations, defenseState);
+    if (_selectedCountry == 'ALL') return enriched;
+    return enriched.where((n) => n.code == _selectedCountry).toList();
   }
 
   List<_StakeholderEntity> get _filteredAxis {
@@ -603,8 +656,10 @@ class _WarStateScreenState extends ConsumerState<WarStateScreen> {
   }
 
   List<_StakeholderEntity> get _filteredNonBelligerents {
-    if (_selectedCountry == 'ALL') return _nonBelligerents;
-    return _nonBelligerents.where((n) => n.code == _selectedCountry).toList();
+    final defenseState = ref.watch(defenseStatsProvider);
+    final enriched = _enrichWithDefenseStats(_nonBelligerents, defenseState);
+    if (_selectedCountry == 'ALL') return enriched;
+    return enriched.where((n) => n.code == _selectedCountry).toList();
   }
 
   bool get _isCoalitionFilter =>
@@ -704,13 +759,24 @@ class _WarStateScreenState extends ConsumerState<WarStateScreen> {
                         title: 'COALITION FORCES',
                         titleColor: NatoColors.friendly,
                         initiallyExpanded: _selectedCountry != 'ALL' && _isCoalitionFilter,
-                        trailing: Text(
-                          '${coalitionFiltered.length} ${coalitionFiltered.length == 1 ? 'NATION' : 'NATIONS'}',
-                          style: AppTextStyles.mono(
-                            size: 10,
-                            color: Palantir.textMuted,
-                            letterSpacing: 1.0,
-                          ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (ref.watch(defenseStatsProvider).loaded) ...[
+                              const PulsingDot(color: NatoColors.friendly, size: 4),
+                              const SizedBox(width: 4),
+                              Text('LIVE', style: AppTextStyles.mono(size: 8, color: NatoColors.friendly)),
+                              const SizedBox(width: 6),
+                            ],
+                            Text(
+                              '${coalitionFiltered.length} ${coalitionFiltered.length == 1 ? 'NATION' : 'NATIONS'}',
+                              style: AppTextStyles.mono(
+                                size: 10,
+                                color: Palantir.textMuted,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
+                          ],
                         ),
                         child: Column(
                           children: coalitionFiltered

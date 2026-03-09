@@ -7,7 +7,8 @@
 // POST /api/defense/scrape  → Manual scrape trigger
 //
 // Stats are loaded from data/defense-stats.json (hot-reloadable).
-// Auto-scraper runs every 30 min via defense-scraper.mjs.
+// Auto-scraper runs at 06:00 & 18:00 UAE time via defense-scraper.mjs.
+// Updates pushed to clients in real-time via WebSocket.
 // =============================================================================
 
 import { Router } from 'express';
@@ -15,6 +16,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { runDefenseScraper, getScraperStatus } from '../scrapers/defense-scraper.mjs';
+import { broadcast } from '../services/ws-server.mjs';
 import { requireAdmin } from '../middleware/auth.mjs';
 import { adminLimiter } from '../middleware/rate-limit.mjs';
 
@@ -48,6 +50,13 @@ router.get('/defense/scraper', (_req, res) => {
 router.post('/defense/scrape', requireAdmin, adminLimiter, async (_req, res) => {
   try {
     const result = await runDefenseScraper();
+    // If stats were updated, also broadcast current state via WS
+    if (result.statsUpdated > 0) {
+      try {
+        const raw = readFileSync(DATA_PATH, 'utf-8');
+        broadcast('stats', JSON.parse(raw));
+      } catch { /* broadcast best-effort */ }
+    }
     res.json({ ok: true, ...result });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });

@@ -1,5 +1,7 @@
+import { createServer } from 'node:http';
 import express from 'express';
 import { PORT, OLLAMA_URL, ULTRON_MODEL, ULTRON_SOUL, ANTHROPIC_API_KEY, LIVEUAMAP_API_KEY } from './config.mjs';
+import { startWsServer } from './services/ws-server.mjs';
 import ultronRouter, { ultronSessions } from './routes/ultron.mjs';
 import c2Router, { c2Sessions } from './routes/c2.mjs';
 import sourcesRouter, { startRefreshScheduler } from './routes/sources.mjs';
@@ -186,7 +188,10 @@ app.get('/api/health', async (_req, res) => {
 });
 
 // ─── Start ───
-app.listen(PORT, () => {
+const server = createServer(app);
+startWsServer(server);
+
+server.listen(PORT, () => {
   console.log(`\n[BRE4CH] Backend v2.1 running on http://localhost:${PORT}`);
   console.log(`[SECURITY] Headers: active | CORS: restrictive | Rate limit: 120/min`);
   console.log(`[AUTH] Admin POST routes: ${process.env.ADMIN_API_KEY ? 'protected' : 'OPEN (no key)'}`);

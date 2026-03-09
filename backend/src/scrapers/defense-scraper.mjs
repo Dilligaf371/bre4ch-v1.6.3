@@ -5,19 +5,20 @@
 //   1. Direct RSS feeds (Al Jazeera, Reuters, AP…) → real URLs → fetch body → regex
 //   2. Google News RSS titles → regex on title text only (no body fetch)
 //
-// Schedule: every 30 minutes
+// Schedule: 06:00 & 18:00 UAE time (02:00 & 14:00 UTC) daily
 // Cost: $0 — pure fetch + regex
 // =============================================================================
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { broadcast } from '../services/ws-server.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const DATA_PATH = join(__dirname, '..', 'data', 'defense-stats.json');
 
-const SCRAPER_INTERVAL = 30 * 60 * 1000; // 30 minutes
+const SCHEDULE_HOURS = [2, 14]; // 06:00 & 18:00 UAE time (UTC+4)
 const FETCH_TIMEOUT = 12_000;
 
 // ── System / country config ──────────────────────────────────────
@@ -439,6 +440,8 @@ export async function runDefenseScraper() {
     if (result.statsUpdated > 0) {
       saveStats(data);
       console.log(`[DEFENSE-SCRAPER] Saved ${result.statsUpdated} updates`);
+      // Push updated stats to all connected clients via WebSocket
+      broadcast('stats', data);
     }
   } catch (err) {
     result.errors++;
@@ -451,15 +454,61 @@ export async function runDefenseScraper() {
   return result;
 }
 
-// ── Scheduler ────────────────────────────────────────────────────
+// ── Scheduler (06:00 & 18:00 UAE = 02:00 & 14:00 UTC) ───────────
 
-let _scraperTimer = null;
+let _scraperStarted = false;
+let _nextRunAt = null;
+
+/**
+ * Compute the next scheduled scrape time.
+ */
+function getNextScheduledTime(from = new Date()) {
+  const candidates = [];
+  for (const h of SCHEDULE_HOURS) {
+    const t = new Date(from);
+    t.setUTCHours(h, 0, 0, 0);
+    if (t.getTime() > from.getTime()) {
+      candidates.push(t);
+    }
+    const t2 = new Date(from);
+    t2.setUTCDate(t2.getUTCDate() + 1);
+    t2.setUTCHours(h, 0, 0, 0);
+    candidates.push(t2);
+  }
+  candidates.sort((a, b) => a.getTime() - b.getTime());
+  return candidates[0];
+}
+
+/**
+ * Recursively schedule the next scrape run.
+ */
+function scheduleNext() {
+  const next = getNextScheduledTime();
+  const delayMs = next.getTime() - Date.now();
+  _nextRunAt = next.toISOString();
+  const hhmm = `${next.getUTCHours().toString().padStart(2, '0')}:00`;
+  console.log(`[DEFENSE-SCRAPER] Next scrape at ${next.toISOString()} (${hhmm} UTC, in ${Math.round(delayMs / 60000)}min)`);
+
+  setTimeout(async () => {
+    try {
+      await runDefenseScraper();
+    } catch (err) {
+      console.error(`[DEFENSE-SCRAPER] Scheduled scrape error: ${err.message}`);
+    }
+    scheduleNext();
+  }, delayMs);
+}
 
 export function startDefenseScraperScheduler() {
-  if (_scraperTimer) return;
-  console.log(`[DEFENSE-SCRAPER] Scheduler started (every ${SCRAPER_INTERVAL / 60_000} min) — zero-cost regex mode`);
+  if (_scraperStarted) return;
+  _scraperStarted = true;
+  console.log(`[DEFENSE-SCRAPER] Scheduler started — schedule: ${SCHEDULE_HOURS.map(h => h + ':00').join(' & ')} UTC (06:00 & 18:00 UAE) — zero-cost regex mode`);
+
+  // Initial scrape 60s after boot
   setTimeout(() => runDefenseScraper(), 60_000);
-  _scraperTimer = setInterval(() => runDefenseScraper(), SCRAPER_INTERVAL);
+
+  // Fixed-time schedule
+  scheduleNext();
 }
 
 // ── Status ───────────────────────────────────────────────────────
@@ -469,7 +518,8 @@ export function getScraperStatus() {
     lastRun: _lastRun,
     isRunning: _isRunning,
     lastResult: _lastResult,
-    intervalMinutes: SCRAPER_INTERVAL / 60_000,
+    schedule: SCHEDULE_HOURS.map(h => `${h.toString().padStart(2, '0')}:00 UTC`),
+    nextRunAt: _nextRunAt,
     mode: 'regex (zero-cost)',
     sources: {
       directFeeds: DIRECT_FEEDS.length,
